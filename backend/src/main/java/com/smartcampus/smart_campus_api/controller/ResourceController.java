@@ -2,6 +2,7 @@ package com.smartcampus.smart_campus_api.controller;
 
 import com.smartcampus.smart_campus_api.model.Resource;
 import com.smartcampus.smart_campus_api.service.ResourceService;
+import jakarta.validation.Valid; // මේක අලුතින් add වුණා
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,19 +31,19 @@ public class ResourceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST create
+    // POST create - @Valid එකතු කර ඇත
     @PostMapping
     public ResponseEntity<Resource> createResource(
-            @RequestBody Resource resource) {
+            @Valid @RequestBody Resource resource) {
         Resource created = resourceService.createResource(resource);
         return ResponseEntity.status(201).body(created);
     }
 
-    // PUT update
+    // PUT update - @Valid එකතු කර ඇත
     @PutMapping("/{id}")
     public ResponseEntity<Resource> updateResource(
             @PathVariable Long id,
-            @RequestBody Resource resource) {
+            @Valid @RequestBody Resource resource) {
         return ResponseEntity.ok(
             resourceService.updateResource(id, resource));
     }
