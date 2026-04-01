@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-// API functions වල නම් හරියටම api.js එකේ තියෙන විදිහටම හැදුවා
 import { getAllResources, createResource, updateResource, deleteResource } from './services/api';
+
+// අලුතින් හදපු Sidebar එක මෙතනින් Import කරගන්නවා
+import Sidebar from './components/Sidebar';
 
 function App() {
   const [resources, setResources] = useState([]);
@@ -15,7 +17,6 @@ function App() {
 
   const loadResources = async () => {
     try {
-      // getResources වෙනුවට getAllResources දැම්මා
       const response = await getAllResources();
       setResources(response.data);
     } catch (error) {
@@ -31,6 +32,7 @@ function App() {
     e.preventDefault();
     setSaving(true);
     
+    // Backend එකට ඕන කරන විදිහටම Data ටික යවනවා
     const payload = {
       name: formData.name,
       type: formData.type,
@@ -45,7 +47,6 @@ function App() {
         await updateResource(editingId, payload);
         setEditingId(null);
       } else {
-        // addResource වෙනුවට createResource දැම්මා
         await createResource(payload);
       }
       
@@ -86,22 +87,8 @@ function App() {
   return (
     <div className="flex h-screen bg-gray-100 font-sans">
       
-      {/* Sidebar */}
-      <div className="w-64 bg-slate-900 text-white flex flex-col">
-        <div className="p-6">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <span className="text-blue-500">🎓</span> Smart Campus
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">Management System</p>
-        </div>
-        <nav className="flex-1 mt-6">
-          <ul className="space-y-2 px-4">
-            <li className="px-4 py-3 bg-blue-600 rounded-lg cursor-pointer">
-              Facilities & Assets
-            </li>
-          </ul>
-        </nav>
-      </div>
+      {/* වෙනම Component එකක් විදිහට හදපු Sidebar එක මෙතනින් කෝල් කරනවා */}
+      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
