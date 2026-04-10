@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.service;
 import com.smartcampus.smart_campus_api.model.Role;
 import com.smartcampus.smart_campus_api.model.User;
 import com.smartcampus.smart_campus_api.repository.UserRepository;
+import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,5 +24,10 @@ public class UserService {
                     .role(Role.USER)
                     .build()
             ));
+    }
+
+    public User getByEmail(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new NoSuchElementException("User not found for email: " + email));
     }
 }
