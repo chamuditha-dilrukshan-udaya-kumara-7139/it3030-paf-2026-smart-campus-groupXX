@@ -22,6 +22,7 @@ function NotificationPanel() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updatingIds, setUpdatingIds] = useState([]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -40,6 +41,34 @@ function NotificationPanel() {
 
     fetchNotifications();
   }, []);
+
+  const markAsRead = async (id) => {
+    if (!id || updatingIds.includes(id)) {
+      return;
+    }
+
+    setUpdatingIds((prev) => [...prev, id]);
+    try {
+      await http.put(`/api/notifications/${id}/read`, null, { withCredentials: true });
+      setNotifications((prev) =>
+        prev.map((notification) => {
+          if (notification.id !== id) {
+            return notification;
+          }
+          return {
+            ...notification,
+            read: true,
+            isRead: true,
+            status: 'READ',
+          };
+        })
+      );
+    } catch (err) {
+      setError('Failed to update notification status.');
+    } finally {
+      setUpdatingIds((prev) => prev.filter((item) => item !== id));
+    }
+  };
 
   return (
     <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
@@ -68,13 +97,25 @@ function NotificationPanel() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm text-slate-700">{getMessage(notification)}</p>
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      read ? 'bg-slate-200 text-slate-700' : 'bg-blue-100 text-blue-700'
-                    }`}
-                  >
-                    {read ? 'Read' : 'Unread'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {!read && notification.id && (
+                      <button
+                        type="button"
+                        onClick={() => markAsRead(notification.id)}
+                        disabled={updatingIds.includes(notification.id)}
+                        className="text-xs text-blue-700 hover:text-blue-800 font-medium"
+                      >
+                        {updatingIds.includes(notification.id) ? 'Marking...' : 'Mark as read'}
+                      </button>
+                    )}
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        read ? 'bg-slate-200 text-slate-700' : 'bg-blue-100 text-blue-700'
+                      }`}
+                    >
+                      {read ? 'Read' : 'Unread'}
+                    </span>
+                  </div>
                 </div>
               </li>
             );
