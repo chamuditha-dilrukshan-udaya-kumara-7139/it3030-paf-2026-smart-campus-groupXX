@@ -1,8 +1,13 @@
 import http from './http';
 
 const RESOURCE_PATH = '/api/resources';
+const AUTH_PATH = '/api/auth';
 
 export const getAllResources = () => http.get(RESOURCE_PATH);
 export const createResource = (resource) => http.post(RESOURCE_PATH, resource);
 export const updateResource = (id, resource) => http.put(`${RESOURCE_PATH}/${id}`, resource);
 export const deleteResource = (id) => http.delete(`${RESOURCE_PATH}/${id}`);
+
+export const loginWithEmail = (credentials) => http.post(`${AUTH_PATH}/login`, credentials);
+export const signupWithEmail = (payload) => http.post(`${AUTH_PATH}/register`, payload);
+export const logout = () => http.post('/logout');

@@ -1,20 +1,19 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { loginWithEmail } from '../services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { signupWithEmail } from '../services/api';
 
-function LoginPage() {
+function SignupPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { fetchCurrentUser } = useAuth();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const registrationSuccess = Boolean(location.state?.registered);
 
-  const destination = location.state?.from?.pathname || '/';
-
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 
@@ -24,16 +23,28 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
     setErrorMessage('');
 
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await loginWithEmail(formData);
-      await fetchCurrentUser();
-      navigate(destination, { replace: true });
+      await signupWithEmail({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+      navigate('/login', {
+        replace: true,
+        state: { registered: true },
+      });
     } catch (error) {
-      const fallback = 'Login failed. Please check your credentials and try again.';
-      setErrorMessage(error.response?.data?.message || fallback);
+      const data = error.response?.data;
+      const fallback = 'Sign up failed. Please review your details and try again.';
+      setErrorMessage(data?.message || Object.values(data || {})[0] || fallback);
     } finally {
       setSubmitting(false);
     }
@@ -43,15 +54,19 @@ function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-sm p-8">
         <p className="text-xs uppercase tracking-[0.2em] text-blue-400">Smart Campus</p>
-        <h1 className="text-3xl font-bold mt-2">Welcome back</h1>
-        <p className="text-slate-400 mt-2">Sign in to access your campus workspace.</p>
-        {registrationSuccess && (
-          <p className="mt-4 rounded-lg bg-emerald-500/15 border border-emerald-500/30 px-3 py-2 text-sm text-emerald-300">
-            Account created successfully. Please sign in.
-          </p>
-        )}
+        <h1 className="text-3xl font-bold mt-2">Create your account</h1>
+        <p className="text-slate-400 mt-2">Register to start managing campus operations.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <input
+            required
+            name="name"
+            type="text"
+            placeholder="Full name"
+            value={formData.name}
+            onChange={handleInputChange}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          />
           <input
             required
             name="email"
@@ -65,8 +80,19 @@ function LoginPage() {
             required
             name="password"
             type="password"
-            placeholder="Password"
+            placeholder="Password (min 8 chars)"
+            minLength={8}
             value={formData.password}
+            onChange={handleInputChange}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            required
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm password"
+            minLength={8}
+            value={formData.confirmPassword}
             onChange={handleInputChange}
             className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -78,7 +104,7 @@ function LoginPage() {
             disabled={submitting}
             className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed py-3 font-medium transition-colors"
           >
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? 'Creating account...' : 'Sign up'}
           </button>
         </form>
 
@@ -90,16 +116,16 @@ function LoginPage() {
 
         <button
           type="button"
-          onClick={handleGoogleLogin}
+          onClick={handleGoogleSignup}
           className="w-full rounded-lg border border-slate-600 bg-slate-800/70 hover:bg-slate-800 py-3 font-medium transition-colors"
         >
           Continue with Google
         </button>
 
         <p className="text-sm text-slate-400 mt-6 text-center">
-          No account yet?{' '}
-          <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium">
-            Create one
+          Already registered?{' '}
+          <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            Sign in
           </Link>
         </p>
       </div>
@@ -107,4 +133,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default SignupPage;

@@ -1,6 +1,30 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { logout } from '../services/api';
 
 function Sidebar() {
+  const navigate = useNavigate();
+  const { user, setUser } = useAuth();
+
+  const initials = (user?.name || 'User')
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      // Clear local auth state even if backend session is already gone.
+    } finally {
+      setUser(null);
+      navigate('/login', { replace: true });
+    }
+  };
+
   return (
     <div className="w-64 bg-slate-900 text-white flex flex-col justify-between h-screen">
       {/* Top Section: Logo and Navigation */}
@@ -43,13 +67,20 @@ function Sidebar() {
       <div className="p-6 border-t border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">
-            AD
+            {initials}
           </div>
           <div>
-            <p className="text-sm font-medium">Admin User</p>
-            <p className="text-xs text-slate-400">admin@campus.edu</p>
+            <p className="text-sm font-medium">{user?.name || 'Campus User'}</p>
+            <p className="text-xs text-slate-400">{user?.email || 'Not signed in'}</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-4 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 transition-colors"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );

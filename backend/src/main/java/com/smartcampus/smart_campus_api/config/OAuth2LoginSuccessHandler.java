@@ -38,6 +38,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         userService.saveOAuthUser(email, name);
-        response.sendRedirect("http://localhost:3000");
+        response.sendRedirect("http://localhost:5173");
     }
 }
