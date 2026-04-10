@@ -37,4 +37,14 @@ public class NotificationService {
         notification.setRead(true);
         return notificationRepository.save(notification);
     }
+
+    public Notification markAsRead(Long userId, Long notificationId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+            .orElseThrow(() -> new NoSuchElementException(
+                "Notification not found for id: " + notificationId + " and userId: " + userId
+            ));
+
+        notification.setRead(true);
+        return notificationRepository.save(notification);
+    }
 }
