@@ -1,9 +1,8 @@
-import axios from 'axios';
+import http from './http';
 
-// Backend එකේ URL එක (Spring Boot run වෙන තැන)
-const API_URL = 'http://localhost:8080/api/resources';
+const RESOURCE_PATH = '/api/resources';
 
-export const getAllResources = () => axios.get(API_URL);
-export const createResource = (resource) => axios.post(API_URL, resource);
-export const updateResource = (id, resource) => axios.put(`${API_URL}/${id}`, resource);
-export const deleteResource = (id) => axios.delete(`${API_URL}/${id}`);
+export const getAllResources = () => http.get(RESOURCE_PATH);
+export const createResource = (resource) => http.post(RESOURCE_PATH, resource);
+export const updateResource = (id, resource) => http.put(`${RESOURCE_PATH}/${id}`, resource);
+export const deleteResource = (id) => http.delete(`${RESOURCE_PATH}/${id}`);
