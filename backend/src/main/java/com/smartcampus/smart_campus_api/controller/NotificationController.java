@@ -52,7 +52,7 @@ public class NotificationController {
     @PutMapping("/{id}/read")
     public ResponseEntity<Notification> markAsRead(
         Authentication authentication,
-        @PathVariable Long id
+        @PathVariable String id
     ) {
         User currentUser = getCurrentUser(authentication);
         try {

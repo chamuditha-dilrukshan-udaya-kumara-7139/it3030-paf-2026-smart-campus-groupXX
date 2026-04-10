@@ -15,21 +15,22 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public Notification createNotification(Long userId, String message) {
+    public Notification createNotification(String userId, String message) {
         Notification notification = Notification.builder()
             .userId(userId)
             .message(message)
             .isRead(false)
             .build();
+        notification.onCreate();
 
         return notificationRepository.save(notification);
     }
 
-    public List<Notification> getUserNotifications(Long userId) {
+    public List<Notification> getUserNotifications(String userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public Notification markAsRead(Long notificationId) {
+    public Notification markAsRead(String notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() ->
                 new NoSuchElementException("Notification not found for id: " + notificationId));
@@ -38,7 +39,7 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
-    public Notification markAsRead(Long userId, Long notificationId) {
+    public Notification markAsRead(String userId, String notificationId) {
         Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
             .orElseThrow(() -> new NoSuchElementException(
                 "Notification not found for id: " + notificationId + " and userId: " + userId

@@ -71,12 +71,12 @@ http://localhost:3000
 
 ## Database
 
-The backend uses SQLite. The database file is created automatically when the backend starts.
+The backend uses MongoDB.
 
-Expected database file:
+Default connection:
 
 ```text
-backend/smartcampus.db
+mongodb://localhost:27017/smartcampus
 ```
 
 ## First-Time Setup Summary
@@ -143,4 +143,7 @@ cd backend
 ```bash
 cd frontend
 npm test
+
+
+npm run --prefix frontend dev
 ```

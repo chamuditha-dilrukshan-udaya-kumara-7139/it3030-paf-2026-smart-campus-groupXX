@@ -117,7 +117,7 @@ public class AuthController {
         return name;
     }
 
-    public record UserProfileResponse(Long id, String name, String email, String role) {
+    public record UserProfileResponse(String id, String name, String email, String role) {
     }
 
     public record SignupRequest(

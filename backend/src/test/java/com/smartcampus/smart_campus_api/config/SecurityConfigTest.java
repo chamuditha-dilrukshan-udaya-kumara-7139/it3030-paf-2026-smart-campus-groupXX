@@ -50,7 +50,7 @@ class SecurityConfigTest {
     void authenticatedUserCanReadOwnProfile() throws Exception {
         when(userService.getByEmail("user@example.com")).thenReturn(
             User.builder()
-                .id(7L)
+                .id("7")
                 .name("Campus User")
                 .email("user@example.com")
                 .role(Role.USER)
@@ -60,7 +60,7 @@ class SecurityConfigTest {
         mockMvc.perform(get("/api/auth/me")
                 .with(user("user@example.com").roles("USER")))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(7))
+            .andExpect(jsonPath("$.id").value("7"))
             .andExpect(jsonPath("$.name").value("Campus User"))
             .andExpect(jsonPath("$.email").value("user@example.com"))
             .andExpect(jsonPath("$.role").value("USER"));

@@ -17,7 +17,7 @@ public class ResourceService {
         return resourceRepository.findAll();
     }
 
-    public Optional<Resource> getResourceById(Long id) {
+    public Optional<Resource> getResourceById(String id) {
         return resourceRepository.findById(id);
     }
 
@@ -25,12 +25,12 @@ public class ResourceService {
         return resourceRepository.save(resource);
     }
 
-    public Resource updateResource(Long id, Resource resource) {
+    public Resource updateResource(String id, Resource resource) {
         resource.setId(id);
         return resourceRepository.save(resource);
     }
 
-    public void deleteResource(Long id) {
+    public void deleteResource(String id) {
         resourceRepository.deleteById(id);
     }
 

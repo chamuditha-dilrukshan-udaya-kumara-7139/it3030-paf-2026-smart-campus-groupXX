@@ -24,7 +24,7 @@ public class ResourceController {
     // GET by ID
     @GetMapping("/{id}")
     public ResponseEntity<Resource> getResourceById(
-            @PathVariable Long id) {
+            @PathVariable String id) {
         return resourceService.getResourceById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -41,7 +41,7 @@ public class ResourceController {
     // PUT update - @Valid එකතු කර ඇත
     @PutMapping("/{id}")
     public ResponseEntity<Resource> updateResource(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody Resource resource) {
         return ResponseEntity.ok(
             resourceService.updateResource(id, resource));
@@ -50,7 +50,7 @@ public class ResourceController {
     // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteResource(
-            @PathVariable Long id) {
+            @PathVariable String id) {
         resourceService.deleteResource(id);
         return ResponseEntity.noContent().build();
     }
