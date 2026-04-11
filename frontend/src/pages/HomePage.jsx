@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../context/AuthContext';
 import {
   createResource,
   deleteResource,
@@ -8,6 +10,19 @@ import {
 } from '../services/api';
 
 function HomePage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin', { replace: true });
+      } else if (user.role === 'TECHNICIAN') {
+        navigate('/technician', { replace: true });
+      }
+    }
+  }, [user, navigate]);
+
   const [resources, setResources] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({

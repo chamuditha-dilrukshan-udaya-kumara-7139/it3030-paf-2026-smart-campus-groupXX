@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginWithEmail } from '../services/api';
@@ -6,13 +6,48 @@ import { loginWithEmail } from '../services/api';
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { fetchCurrentUser } = useAuth();
+  const { user, fetchCurrentUser } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const registrationSuccess = Boolean(location.state?.registered);
 
   const destination = location.state?.from?.pathname || '/';
+
+  // Handle OAuth2 redirect token
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const error = params.get('error');
+
+    if (error) {
+      setErrorMessage(error === 'email_not_provided' ? 'Google login failed: Email not provided.' : 'Google login failed.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      fetchCurrentUser();
+    }
+  }, [fetchCurrentUser]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      if (location.state?.from) {
+        navigate(destination, { replace: true });
+      } else {
+        if (user.role === 'ADMIN') {
+          navigate('/admin', { replace: true });
+        } else if (user.role === 'TECHNICIAN') {
+          navigate('/technician', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }
+    }
+  }, [user, navigate, location.state, destination]);
 
   const handleGoogleLogin = () => {
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
@@ -28,9 +63,15 @@ function LoginPage() {
     setErrorMessage('');
 
     try {
-      await loginWithEmail(formData);
+      const response = await loginWithEmail(formData);
+      const { token } = response.data;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      
       await fetchCurrentUser();
-      navigate(destination, { replace: true });
+      // Redirection is now handled by the useEffect(user) hook
     } catch (error) {
       const fallback = 'Login failed. Please check your credentials and try again.';
       setErrorMessage(error.response?.data?.message || fallback);

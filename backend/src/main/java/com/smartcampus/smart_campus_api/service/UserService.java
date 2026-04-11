@@ -54,4 +54,15 @@ public class UserService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public java.util.List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User updateUserRole(String userId, Role role) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new java.util.NoSuchElementException("User not found for id: " + userId));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 }

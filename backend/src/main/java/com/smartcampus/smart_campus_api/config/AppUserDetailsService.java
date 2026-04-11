@@ -22,14 +22,9 @@ public class AppUserDetailsService implements UserDetailsService {
         User user = userService.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("No user found for email: " + email));
 
-        String password = user.getPassword();
-        if (password == null || password.isBlank()) {
-            throw new UsernameNotFoundException("Password login is not enabled for this account.");
-        }
-
         return org.springframework.security.core.userdetails.User
             .withUsername(user.getEmail())
-            .password(password)
+            .password(user.getPassword() != null ? user.getPassword() : "")
             .authorities(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
             .build();
     }

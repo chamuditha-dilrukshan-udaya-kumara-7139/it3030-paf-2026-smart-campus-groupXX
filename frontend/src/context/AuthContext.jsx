@@ -12,14 +12,22 @@ export function AuthContextProvider({ children }) {
   setLoading(true);
   setError(null);
 
+  const token = localStorage.getItem('token');
+  if (!token) {
+    setUser(null);
+    setLoading(false);
+    return;
+  }
+
   try {
-    const response = await http.get('/api/auth/me', { withCredentials: true });
+    const response = await http.get('/api/auth/me');
     setUser(response.data ?? null);
   } catch (err) {
     if (err.response?.status === 401) {
-      // ✅ Normal case: user not logged in
+      // ✅ Normal case: user not logged in or token expired
       setUser(null);
-      setError(null); // don't treat as error
+      setError(null); 
+      localStorage.removeItem('token'); // Clear invalid token
     } else {
       // ❗ real error (server issue)
       setUser(null);
@@ -34,6 +42,11 @@ export function AuthContextProvider({ children }) {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setUser(null);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -42,8 +55,9 @@ export function AuthContextProvider({ children }) {
       isAuthenticated: Boolean(user),
       setUser,
       fetchCurrentUser,
+      logout,
     }),
-    [user, loading, error, fetchCurrentUser]
+    [user, loading, error, fetchCurrentUser, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

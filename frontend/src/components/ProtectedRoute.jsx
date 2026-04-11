@@ -17,18 +17,26 @@ function hasAdminAccess(user) {
   return false;
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles = ['ADMIN'] }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null;
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!hasAdminAccess(user)) {
+  const userRole = user.role;
+  const isAuthorized = allowedRoles.includes(userRole);
+
+  if (!isAuthorized) {
+    // Redirect to home if they don't have the required role
     return <Navigate to="/" replace />;
   }
 

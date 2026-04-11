@@ -2,6 +2,7 @@ package com.smartcampus.smart_campus_api.controller;
 
 import com.smartcampus.smart_campus_api.model.User;
 import com.smartcampus.smart_campus_api.service.UserService;
+import com.smartcampus.smart_campus_api.config.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -32,10 +33,12 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthController(UserService userService, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("/status")
@@ -64,16 +67,19 @@ public class AuthController {
                 )
             );
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authentication);
-            SecurityContextHolder.setContext(context);
-            httpServletRequest.getSession(true).setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                context
-            );
+            // SecurityContext context = SecurityContextHolder.createEmptyContext();
+            // context.setAuthentication(authentication);
+            // SecurityContextHolder.setContext(context);
+            // httpServletRequest.getSession(true).setAttribute(
+            //     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+            //     context
+            // );
+
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String jwt = jwtService.generateToken(userDetails);
 
             User user = userService.getByEmail(request.email().trim().toLowerCase());
-            return ResponseEntity.ok(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name()));
+            return ResponseEntity.ok(new UserProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), jwt));
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
         }
@@ -96,7 +102,8 @@ public ResponseEntity<?> me(Authentication authentication) {
         user.getId(),
         user.getName(),
         user.getEmail(),
-        user.getRole().name()
+        user.getRole().name(),
+        null // Token not needed for /me as it's already provided in header
     ));
 }
 
@@ -125,7 +132,7 @@ public ResponseEntity<?> me(Authentication authentication) {
         return name;
     }
 
-    public record UserProfileResponse(String id, String name, String email, String role) {
+    public record UserProfileResponse(String id, String name, String email, String role, String token) {
     }
 
     public record SignupRequest(
