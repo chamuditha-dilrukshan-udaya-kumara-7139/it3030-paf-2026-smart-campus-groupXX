@@ -9,18 +9,26 @@ export function AuthContextProvider({ children }) {
   const [error, setError] = useState(null);
 
   const fetchCurrentUser = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await http.get('/api/auth/me', { withCredentials: true });
-      setUser(response.data ?? null);
-    } catch (err) {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const response = await http.get('/api/auth/me', { withCredentials: true });
+    setUser(response.data ?? null);
+  } catch (err) {
+    if (err.response?.status === 401) {
+      // ✅ Normal case: user not logged in
+      setUser(null);
+      setError(null); // don't treat as error
+    } else {
+      // ❗ real error (server issue)
       setUser(null);
       setError(err);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchCurrentUser();

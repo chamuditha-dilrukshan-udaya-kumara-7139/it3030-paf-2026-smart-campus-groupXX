@@ -80,17 +80,25 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> me(Authentication authentication) {
-        String email = resolveEmail(authentication);
-        User user = userService.getByEmail(email);
+public ResponseEntity<?> me(Authentication authentication) {
 
-        return ResponseEntity.ok(new UserProfileResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getRole().name()
-        ));
+    if (authentication == null || !authentication.isAuthenticated() 
+        || authentication.getName().equals("anonymousUser")) {
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User not logged in"));
     }
+
+    String email = resolveEmail(authentication);
+    User user = userService.getByEmail(email);
+
+    return ResponseEntity.ok(new UserProfileResponse(
+        user.getId(),
+        user.getName(),
+        user.getEmail(),
+        user.getRole().name()
+    ));
+}
 
     private String resolveEmail(Authentication authentication) {
         Object principal = authentication.getPrincipal();
