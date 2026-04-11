@@ -30,18 +30,20 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     http
         .csrf(csrf -> csrf.disable())
-        .cors(Customizer.withDefaults())   // ✅ ADD THIS
+        .cors(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-    .requestMatchers("/api/auth/me").permitAll()   // ✅ allow it
-    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-    .requestMatchers("/api/**").authenticated()
-    .anyRequest().permitAll()
-); 
+            .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+            .requestMatchers("/api/auth/status").permitAll()
+            .requestMatchers("/api/auth/me").authenticated()
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers("/api/**").authenticated()
+            .anyRequest().permitAll()
+        )
+        .oauth2Login(oauth2 -> oauth2   // 🔥 THIS IS THE MISSING PART
+            .defaultSuccessUrl("http://localhost:5173", true)
+        );
 
     return http.build();
-
-    
 }
 
     @Bean
