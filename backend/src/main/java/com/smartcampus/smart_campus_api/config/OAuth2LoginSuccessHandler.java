@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.config;
 import com.smartcampus.smart_campus_api.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -22,13 +23,33 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication)
-            throws IOException, ServletException {
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
+    ) throws IOException, ServletException {
 
-        // 👉 you can add logic here later (save user, etc.)
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        response.sendRedirect("http://localhost:3000"); // or wherever your frontend is
+        String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
+
+        if (email != null) {
+
+            // check if user exists
+            try {
+                userService.getByEmail(email);
+            } catch (Exception e) {
+                // create new user if not exists
+                userService.registerLocalUser(
+                    name != null ? name : "Google User",
+                    email.toLowerCase(),
+                    ""
+                );
+            }
+        }
+
+        // redirect to frontend
+        response.sendRedirect("http://localhost:5173");
     }
 }
