@@ -6,7 +6,7 @@ import { loginWithEmail } from '../services/api';
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, fetchCurrentUser } = useAuth();
+  const { user, setUser, fetchCurrentUser } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -64,14 +64,18 @@ function LoginPage() {
 
     try {
       const response = await loginWithEmail(formData);
-      const { token } = response.data;
-      
+      // Backend returns { id, name, email, role, token }
+      const { token, ...userProfile } = response.data;
+
+      // 1. Persist the JWT so axios attaches it to every future request
       if (token) {
         localStorage.setItem('token', token);
       }
-      
-      await fetchCurrentUser();
-      // Redirection is now handled by the useEffect(user) hook
+
+      // 2. Set the user immediately — AuthContext will persist it to localStorage
+      //    via the saveUserToStorage effect. No second network call needed.
+      setUser(userProfile);
+      // Redirect is handled by the useEffect watching `user`
     } catch (error) {
       const fallback = 'Login failed. Please check your credentials and try again.';
       setErrorMessage(error.response?.data?.message || fallback);
