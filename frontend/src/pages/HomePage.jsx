@@ -13,7 +13,7 @@ function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'ADMIN';
-  
+
   useEffect(() => {
     if (user) {
       if (user.role === 'ADMIN') {
@@ -181,11 +181,10 @@ function HomePage() {
                     <td className="px-6 py-4 text-sm text-slate-500">{res.location}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          res.status === 'ACTIVE'
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${res.status === 'ACTIVE'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
-                        }`}
+                          }`}
                       >
                         {res.status}
                       </span>
