@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -40,6 +41,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/status").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/technician/**").hasAnyRole("TECHNICIAN", "ADMIN")
+                // Resource mutation: restricted to ADMIN only (must be before the /api/** catch-all)
+                .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
