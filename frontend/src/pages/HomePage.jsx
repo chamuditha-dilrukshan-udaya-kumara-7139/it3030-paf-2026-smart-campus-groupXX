@@ -12,6 +12,7 @@ import {
 function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'ADMIN';
   
   useEffect(() => {
     if (user) {
@@ -118,16 +119,18 @@ function HomePage() {
             <h2 className="text-2xl font-bold text-slate-800">Facilities & Assets</h2>
             <p className="text-sm text-slate-500">Manage campus resources and infrastructure</p>
           </div>
-          <button
-            onClick={() => {
-              setFormData({ name: '', type: '', capacity: '', location: '', status: 'ACTIVE' });
-              setEditingId(null);
-              setShowForm(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all shadow-md"
-          >
-            + Add Resource
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setFormData({ name: '', type: '', capacity: '', location: '', status: 'ACTIVE' });
+                setEditingId(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all shadow-md"
+            >
+              + Add Resource
+            </button>
+          )}
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-8">
@@ -160,7 +163,9 @@ function HomePage() {
                   <th className="px-6 py-4 font-medium border-b">Capacity</th>
                   <th className="px-6 py-4 font-medium border-b">Location</th>
                   <th className="px-6 py-4 font-medium border-b">Status</th>
-                  <th className="px-6 py-4 font-medium border-b text-center">Actions</th>
+                  {isAdmin && (
+                    <th className="px-6 py-4 font-medium border-b text-center">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -185,20 +190,22 @@ function HomePage() {
                         {res.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(res)}
-                        className="text-amber-600 hover:text-amber-700 font-medium text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(res.id)}
-                        className="text-red-600 hover:text-red-700 font-medium text-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(res)}
+                          className="text-amber-600 hover:text-amber-700 font-medium text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(res.id)}
+                          className="text-red-600 hover:text-red-700 font-medium text-sm"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
