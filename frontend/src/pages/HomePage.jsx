@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
+import http from '../services/http';
 import {
   createResource,
   deleteResource,
-  getAllResources,
   updateResource,
 } from '../services/api';
 
@@ -13,16 +13,6 @@ function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'ADMIN';
-
-  useEffect(() => {
-    if (user) {
-      if (user.role === 'ADMIN') {
-        navigate('/admin', { replace: true });
-      } else if (user.role === 'TECHNICIAN') {
-        navigate('/technician', { replace: true });
-      }
-    }
-  }, [user, navigate]);
 
   const [resources, setResources] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -35,29 +25,39 @@ function HomePage() {
   });
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('All');
+
+  const [filterType, setFilterType] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterMinCapacity, setFilterMinCapacity] = useState('');
 
   useEffect(() => {
     loadResources();
   }, []);
 
-  const loadResources = async () => {
+  const loadResources = async (type, location, minCapacity) => {
     try {
-      const response = await getAllResources();
+      const params = {};
+      if (type && type.trim()) params.type = type.trim();
+      if (location && location.trim()) params.location = location.trim();
+      if (minCapacity) params.minCapacity = minCapacity;
+
+      const response = await http.get('/api/resources', { params });
       setResources(response.data);
     } catch (error) {
       console.error('Error loading resources:', error);
     }
   };
 
-  const filteredResources = resources.filter((res) => {
-    const matchesSearch =
-      res.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      res.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'All' || res.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  const handleSearch = () => {
+    loadResources(filterType, filterLocation, filterMinCapacity || undefined);
+  };
+
+  const handleClearFilters = () => {
+    setFilterType('');
+    setFilterLocation('');
+    setFilterMinCapacity('');
+    loadResources();
+  };
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -68,9 +68,12 @@ function HomePage() {
     setSaving(true);
 
     const payload = {
-      ...formData,
+      name: formData.name,
+      type: formData.type,
+      location: formData.location,
       capacity: parseInt(formData.capacity, 10) || 1,
-      availabilityWindows: 'Mon-Fri: 8AM - 5PM',
+      status: formData.status,
+      availabilityWindows: ["Mon-Fri: 8AM - 5PM"],
     };
 
     try {
@@ -84,7 +87,8 @@ function HomePage() {
       setShowForm(false);
       loadResources();
     } catch (err) {
-      alert('Failed to save resource!');
+      console.error("Save Error:", err.response?.data || err.message);
+      alert('Failed to save resource! Please check the console for validation details.');
     } finally {
       setSaving(false);
     }
@@ -103,9 +107,13 @@ function HomePage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure?')) {
-      await deleteResource(id);
-      loadResources();
+    if (window.confirm('Are you sure you want to delete this resource?')) {
+      try {
+        await deleteResource(id);
+        loadResources();
+      } catch (error) {
+        console.error('Error deleting resource:', error);
+      }
     }
   };
 
@@ -134,24 +142,64 @@ function HomePage() {
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-8">
-          <div className="flex gap-4 mb-6">
-            <input
-              type="text"
-              placeholder="Search by name or location..."
-              className="flex-1 px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select
-              className="px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="All">All Types</option>
-              <option value="Hall">Lecture Hall</option>
-              <option value="Lab">Laboratory</option>
-              <option value="Equipment">Equipment</option>
-            </select>
+          
+          <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Filter Resources</p>
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-500">Type</label>
+                <select
+                  className="px-3 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm min-w-[140px]"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                >
+                  <option value="">All Types</option>
+                  <option value="Hall">Lecture Hall</option>
+                  <option value="Lab">Laboratory</option>
+                  <option value="Equipment">Equipment</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-500">Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Block A"
+                  className="px-3 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-[160px]"
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-slate-500">Min Capacity</label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 30"
+                  className="px-3 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm w-[120px]"
+                  value={filterMinCapacity}
+                  onChange={(e) => setFilterMinCapacity(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+
+              <div className="flex gap-2 ml-auto">
+                <button
+                  onClick={handleClearFilters}
+                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm hover:bg-slate-50 transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleSearch}
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+                >
+                  Search
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -169,7 +217,7 @@ function HomePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredResources.map((res) => (
+                {resources.map((res) => (
                   <tr key={res.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-800">{res.name}</td>
                     <td className="px-6 py-4">
@@ -181,10 +229,11 @@ function HomePage() {
                     <td className="px-6 py-4 text-sm text-slate-500">{res.location}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${res.status === 'ACTIVE'
+                        className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          res.status === 'ACTIVE'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
-                          }`}
+                        }`}
                       >
                         {res.status}
                       </span>
@@ -265,6 +314,7 @@ function HomePage() {
               >
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="OUT_OF_SERVICE">OUT OF SERVICE</option>
+                <option value="UNDER_MAINTENANCE">UNDER MAINTENANCE</option>
               </select>
 
               <div className="flex gap-3 mt-6">
