@@ -9,6 +9,7 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -29,11 +30,15 @@ function AdminPage() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
+      setUpdatingId(userId);
       await updateUserRole(userId, newRole);
-      fetchUsers(); // Refresh list
+      await fetchUsers(); 
+      alert('User role updated successfully!');
     } catch (err) {
-      alert('Failed to update role.');
+      alert('Failed to update role. Please try again.');
       console.error(err);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -59,8 +64,14 @@ function AdminPage() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
             <h2 className="text-lg font-semibold text-slate-800">User Management</h2>
+            <button 
+              onClick={fetchUsers}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Refresh List
+            </button>
           </div>
 
           {loading ? (
@@ -75,7 +86,7 @@ function AdminPage() {
                     <th className="px-6 py-3 font-medium">Name</th>
                     <th className="px-6 py-3 font-medium">Email</th>
                     <th className="px-6 py-3 font-medium">Current Role</th>
-                    <th className="px-6 py-3 font-medium">Actions</th>
+                    <th className="px-6 py-3 font-medium text-center">Change Role</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -92,16 +103,24 @@ function AdminPage() {
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 flex justify-center items-center gap-3">
                         <select
+                          disabled={updatingId === user.id}
                           value={user.role}
-                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                          className="text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => {
+                            if(window.confirm(`Change ${user.name}'s role to ${e.target.value}?`)) {
+                                handleRoleChange(user.id, e.target.value);
+                            }
+                          }}
+                          className="text-sm border border-slate-300 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                         >
                           <option value="USER">User</option>
                           <option value="TECHNICIAN">Technician</option>
                           <option value="ADMIN">Admin</option>
                         </select>
+                        {updatingId === user.id && (
+                          <span className="text-xs text-blue-500 animate-pulse">Updating...</span>
+                        )}
                       </td>
                     </tr>
                   ))}
