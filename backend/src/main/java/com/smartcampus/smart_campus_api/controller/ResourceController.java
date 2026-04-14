@@ -15,10 +15,14 @@ public class ResourceController {
     @Autowired
     private ResourceService resourceService;
 
-    // GET all resources
+    // GET all resources — supports optional filtering via query params:
+    // ?type=Hall  &location=Block-A  &minCapacity=30  (any combination)
     @GetMapping
-    public List<Resource> getAllResources() {
-        return resourceService.getAllResources();
+    public List<Resource> getAllResources(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minCapacity) {
+        return resourceService.search(type, location, minCapacity);
     }
 
     // GET by ID
@@ -55,15 +59,12 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-    // GET search by type
+    // GET /search — kept for backwards compatibility, same behaviour as GET /
     @GetMapping("/search")
     public List<Resource> searchResources(
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String location) {
-        if (type != null) 
-            return resourceService.getByType(type);
-        if (location != null) 
-            return resourceService.getByLocation(location);
-        return resourceService.getAllResources();
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minCapacity) {
+        return resourceService.search(type, location, minCapacity);
     }
 }
