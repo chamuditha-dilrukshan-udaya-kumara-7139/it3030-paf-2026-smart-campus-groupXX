@@ -27,26 +27,23 @@ function Sidebar() {
 
       <nav className="flex-1 px-4">
         <ul className="space-y-2">
-          {/* Dashboard - Visible only to Admin */}
-          {user?.role === 'ADMIN' && (
-            <li>
-              <Link to="/admin" className={`block px-4 py-2 rounded ${location.pathname === '/admin' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                ▦ Dashboard
-              </Link>
-            </li>
-          )}
-
-          {/* Facilities & Assets - Visible to Everyone */}
           <li>
             <Link to="/" className={`block px-4 py-2 rounded ${location.pathname === '/' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
               ⬡ Facilities & Assets
             </Link>
           </li>
+          
+         
         </ul>
       </nav>
 
       <div className="p-6 border-t border-slate-800">
-        <p className="text-sm font-medium">{user?.name}</p>
+        <div className="mb-2">
+          <p className="text-sm font-medium">{user?.name}</p>
+          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase">
+            {user?.role}
+          </span>
+        </div>
         <button onClick={handleLogout} className="mt-2 w-full text-left text-xs text-slate-400 hover:text-white">
           Sign out
         </button>
