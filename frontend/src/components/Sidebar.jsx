@@ -32,8 +32,11 @@ function Sidebar() {
               ⬡ Facilities & Assets
             </Link>
           </li>
-          
-         
+          <li>
+            <Link to="/tickets" className={`block px-4 py-2 rounded ${location.pathname.startsWith('/tickets') ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+              ⬡ Maintenance Tickets
+            </Link>
+          </li>
         </ul>
       </nav>
 

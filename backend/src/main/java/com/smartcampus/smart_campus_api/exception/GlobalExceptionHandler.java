@@ -24,4 +24,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+        return ResponseEntity.status(403).body(Map.of("message", ex.getMessage()));
+    }
 }

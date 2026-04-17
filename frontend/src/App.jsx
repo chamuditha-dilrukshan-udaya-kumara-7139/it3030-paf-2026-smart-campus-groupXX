@@ -4,6 +4,9 @@ import PublicAuthRoute from './components/PublicAuthRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import TicketsDashboard from './pages/TicketsDashboard';
+import CreateTicket from './pages/CreateTicket';
+import TicketDetail from './pages/TicketDetail';
 
 function App() {
   return (
@@ -36,7 +39,30 @@ function App() {
         }
       />
 
-      
+      <Route
+        path="/tickets"
+        element={
+          <AuthenticatedRoute>
+            <TicketsDashboard />
+          </AuthenticatedRoute>
+        }
+      />
+      <Route
+        path="/tickets/new"
+        element={
+          <AuthenticatedRoute>
+            <CreateTicket />
+          </AuthenticatedRoute>
+        }
+      />
+      <Route
+        path="/tickets/:id"
+        element={
+          <AuthenticatedRoute>
+            <TicketDetail />
+          </AuthenticatedRoute>
+        }
+      />
       
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
