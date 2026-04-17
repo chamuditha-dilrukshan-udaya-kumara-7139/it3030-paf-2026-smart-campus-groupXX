@@ -28,12 +28,12 @@ function Sidebar() {
       <nav className="flex-1 px-4">
         <ul className="space-y-2">
           <li>
-            <Link to="/" className={`block px-4 py-2 rounded ${location.pathname === '/' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+            <Link to="/hub" className={`block px-4 py-2 rounded ${location.pathname === '/hub' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
               ⬡ Facilities & Assets
             </Link>
           </li>
           <li>
-            <Link to="/tickets" className={`block px-4 py-2 rounded ${location.pathname.startsWith('/tickets') ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+            <Link to="/hub/tickets" className={`block px-4 py-2 rounded ${location.pathname.startsWith('/hub/tickets') ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
               ⬡ Maintenance Tickets
             </Link>
           </li>

@@ -13,7 +13,7 @@ function App() {
     <Routes>
       
       <Route
-        path="/"
+        path="/hub"
         element={
           <AuthenticatedRoute>
             <HomePage />
@@ -40,7 +40,7 @@ function App() {
       />
 
       <Route
-        path="/tickets"
+        path="/hub/tickets"
         element={
           <AuthenticatedRoute>
             <TicketsDashboard />
@@ -48,7 +48,7 @@ function App() {
         }
       />
       <Route
-        path="/tickets/new"
+        path="/hub/tickets/new"
         element={
           <AuthenticatedRoute>
             <CreateTicket />
@@ -56,7 +56,7 @@ function App() {
         }
       />
       <Route
-        path="/tickets/:id"
+        path="/hub/tickets/:id"
         element={
           <AuthenticatedRoute>
             <TicketDetail />
@@ -64,7 +64,7 @@ function App() {
         }
       />
       
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/hub" replace />} />
     </Routes>
   );
 }

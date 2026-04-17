@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.controller;
 import com.smartcampus.smart_campus_api.dto.CommentRequestDto;
 import com.smartcampus.smart_campus_api.dto.TicketRequestDto;
 import com.smartcampus.smart_campus_api.dto.TicketStatusUpdateDto;
+import com.smartcampus.smart_campus_api.dto.TicketUpdateDto;
 import com.smartcampus.smart_campus_api.model.Comment;
 import com.smartcampus.smart_campus_api.model.Ticket;
 import com.smartcampus.smart_campus_api.service.TicketService;
@@ -31,7 +32,8 @@ public class TicketController {
 
     @GetMapping
     public ResponseEntity<List<Ticket>> getAllTickets() {
-        return ResponseEntity.ok(ticketService.getAllTickets());
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(ticketService.getAllTickets(email));
     }
 
     @GetMapping("/user/{userId}")
@@ -65,6 +67,19 @@ public class TicketController {
     public ResponseEntity<Void> deleteComment(@PathVariable String id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         ticketService.deleteComment(id, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Ticket> updateTicket(@PathVariable String id, @Valid @RequestBody TicketUpdateDto dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(ticketService.updateTicket(id, dto, email));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable String id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        ticketService.deleteTicket(id, email);
         return ResponseEntity.noContent().build();
     }
 }

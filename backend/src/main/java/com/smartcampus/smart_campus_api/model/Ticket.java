@@ -44,6 +44,10 @@ public class Ticket {
 
     private String assigneeId; // Can be set by Admin/Technician
 
+    private String scheduledMeetingTime;
+
+    private String meetingMessage;
+
     private List<String> attachments; // Base64 encoded strings
 
     @CreatedDate

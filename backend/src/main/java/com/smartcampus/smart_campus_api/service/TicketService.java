@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.service;
 import com.smartcampus.smart_campus_api.dto.CommentRequestDto;
 import com.smartcampus.smart_campus_api.dto.TicketRequestDto;
 import com.smartcampus.smart_campus_api.dto.TicketStatusUpdateDto;
+import com.smartcampus.smart_campus_api.dto.TicketUpdateDto;
 import com.smartcampus.smart_campus_api.exception.ResourceNotFoundException;
 import com.smartcampus.smart_campus_api.exception.UnauthorizedAccessException;
 import com.smartcampus.smart_campus_api.model.Comment;
@@ -51,7 +52,11 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
-    public List<Ticket> getAllTickets() {
+    public List<Ticket> getAllTickets(String userEmail) {
+        User user = userService.getByEmail(userEmail);
+        if (user.getRole() != Role.ADMIN && user.getRole() != Role.TECHNICIAN) {
+            throw new UnauthorizedAccessException("You do not have access to view all tickets.");
+        }
         return ticketRepository.findAll();
     }
 
@@ -72,6 +77,8 @@ public class TicketService {
 
         Ticket ticket = getTicketById(id);
         ticket.setStatus(dto.getStatus());
+        ticket.setScheduledMeetingTime(dto.getScheduledMeetingTime());
+        ticket.setMeetingMessage(dto.getMeetingMessage());
         
         // Auto assign to the technician who took in progress
         if ("IN_PROGRESS".equals(dto.getStatus()) && ticket.getAssigneeId() == null) {
@@ -106,5 +113,39 @@ public class TicketService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    public Ticket updateTicket(String id, TicketUpdateDto dto, String userEmail) {
+        Ticket ticket = getTicketById(id);
+        User user = userService.getByEmail(userEmail);
+
+        if (!ticket.getAuthorId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
+            throw new UnauthorizedAccessException("You can only edit your own tickets.");
+        }
+
+        if (!ticket.getStatus().equals("OPEN") && user.getRole() != Role.ADMIN) {
+            throw new UnauthorizedAccessException("You can only edit tickets that are still OPEN.");
+        }
+
+        ticket.setTitle(dto.getTitle());
+        ticket.setDescription(dto.getDescription());
+        ticket.setCategory(dto.getCategory());
+        ticket.setPriority(dto.getPriority());
+        ticket.setContactDetails(dto.getContactDetails());
+
+        return ticketRepository.save(ticket);
+    }
+
+    public void deleteTicket(String id, String userEmail) {
+        Ticket ticket = getTicketById(id);
+        User user = userService.getByEmail(userEmail);
+
+        if (!ticket.getAuthorId().equals(user.getId()) && user.getRole() != Role.ADMIN) {
+            throw new UnauthorizedAccessException("You can only delete your own tickets.");
+        }
+
+        List<Comment> comments = commentRepository.findByTicketId(id);
+        commentRepository.deleteAll(comments);
+        ticketRepository.delete(ticket);
     }
 }

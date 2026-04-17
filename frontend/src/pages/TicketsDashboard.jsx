@@ -9,32 +9,36 @@ function TicketsDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState('my_tickets');
+  const isStaff = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+
   useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        setLoading(true);
+        let data = [];
+        if (isStaff && activeTab === 'solving_tickets') {
+          data = await ticketService.getAllTickets();
+        } else {
+          data = await ticketService.getUserTickets(user.id);
+        }
+        setTickets(data);
+      } catch (error) {
+        console.error('Failed to fetch tickets', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTickets();
+  }, [activeTab, user]);
+
+  useEffect(() => {
     // Setting up to refresh timer
     const interval = setInterval(() => {
       setTickets((t) => [...t]);
     }, 60000); // refresh every minute to update the timer
     return () => clearInterval(interval);
   }, []);
-
-  const fetchTickets = async () => {
-    try {
-      setLoading(true);
-      // Fetch all for admin/tech, else fetch user tickets
-      let data = [];
-      if (user?.role === 'ADMIN' || user?.role === 'TECHNICIAN') {
-        data = await ticketService.getAllTickets();
-      } else {
-        data = await ticketService.getUserTickets(user.id);
-      }
-      setTickets(data);
-    } catch (error) {
-      console.error('Failed to fetch tickets', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const calculateTimeOpened = (createdAt) => {
     if (!createdAt) return 'Unknown';
@@ -75,13 +79,19 @@ function TicketsDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="flex justify-between items-center mb-2">
+        <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
+          <span>🎓</span> Smart Campus
+        </div>
+      </div>
+
       <div className="flex justify-between items-center pb-6 border-b border-gray-200">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Maintenance Tickets</h1>
           <p className="mt-2 text-sm text-gray-500">Manage and track your campus maintenance requests.</p>
         </div>
         <button 
-          onClick={() => navigate('/tickets/new')}
+          onClick={() => navigate('/hub/tickets/new')}
           className="inline-flex items-center px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
         >
           <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,6 +100,23 @@ function TicketsDashboard() {
           Create Ticket
         </button>
       </div>
+
+      {isStaff && (
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveTab('my_tickets')}
+            className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'my_tickets' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            My Tickets
+          </button>
+          <button
+            onClick={() => setActiveTab('solving_tickets')}
+            className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'solving_tickets' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            Solving Tickets
+          </button>
+        </div>
+      )}
 
       {tickets.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
@@ -101,7 +128,7 @@ function TicketsDashboard() {
           {tickets.map(ticket => (
             <div 
               key={ticket.id} 
-              onClick={() => navigate(`/tickets/${ticket.id}`)}
+              onClick={() => navigate(`/hub/tickets/${ticket.id}`)}
               className="bg-white overflow-hidden rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-1 relative group"
             >
               <div className="p-6">
@@ -109,9 +136,16 @@ function TicketsDashboard() {
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(ticket.status)}`}>
                     {ticket.status.replace('_', ' ')}
                   </span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs ${getPriorityStyle(ticket.priority)}`}>
-                    {ticket.priority} Priority
-                  </span>
+                  <div className="flex gap-2">
+                    {ticket.scheduledMeetingTime && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold shadow-[0_0_10px_rgba(99,102,241,0.3)] animate-pulse">
+                        Meeting
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs ${getPriorityStyle(ticket.priority)}`}>
+                      {ticket.priority} Priority
+                    </span>
+                  </div>
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">{ticket.title}</h3>

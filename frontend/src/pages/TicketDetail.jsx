@@ -11,36 +11,78 @@ function TicketDetail() {
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [meetingTime, setMeetingTime] = useState('');
+  const [meetingMessage, setMeetingMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: '', priority: '', contactDetails: '' });
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [ticketData, commentsData] = await Promise.all([
+          ticketService.getTicketById(id),
+          ticketService.getCommentsForTicket(id)
+        ]);
+        setTicket(ticketData);
+        setComments(commentsData);
+        if (ticketData.scheduledMeetingTime) {
+          setMeetingTime(ticketData.scheduledMeetingTime);
+          setMeetingMessage(ticketData.meetingMessage || '');
+        }
+        setEditForm({
+          title: ticketData.title,
+          description: ticketData.description,
+          category: ticketData.category,
+          priority: ticketData.priority,
+          contactDetails: ticketData.contactDetails || ''
+        });
+      } catch (err) {
+        console.error("Error fetching ticket:", err);
+        setError('Failed to load ticket details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
   }, [id]);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [ticketData, commentsData] = await Promise.all([
-        ticketService.getTicketById(id),
-        ticketService.getCommentsForTicket(id)
-      ]);
-      setTicket(ticketData);
-      setComments(commentsData);
-    } catch (err) {
-      setError('Failed to load ticket details.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
     try {
-      await ticketService.updateTicketStatus(id, newStatus);
+      await ticketService.updateTicketStatus(id, { 
+        status: newStatus,
+        scheduledMeetingTime: ticket.scheduledMeetingTime,
+        meetingMessage: ticket.meetingMessage
+      });
       setTicket({ ...ticket, status: newStatus });
     } catch (err) {
-      alert('Failed to update status.');
+      console.error(err);
+      window.alert('Failed to update status.');
+    }
+  };
+
+  const handleUpdateMeeting = async (isCancel = false) => {
+    try {
+      const updatedTime = isCancel ? null : meetingTime;
+      const updatedMsg = isCancel ? null : meetingMessage;
+      await ticketService.updateTicketStatus(id, { 
+        status: ticket.status, 
+        scheduledMeetingTime: updatedTime, 
+        meetingMessage: updatedMsg 
+      });
+      setTicket({ ...ticket, scheduledMeetingTime: updatedTime, meetingMessage: updatedMsg });
+      if (isCancel) {
+        setMeetingTime('');
+        setMeetingMessage('');
+      }
+      window.alert(isCancel ? 'Meeting schedule removed!' : 'Meeting schedule updated!');
+    } catch (err) {
+      console.error(err);
+      window.alert('Failed to update meeting schedule.');
     }
   };
 
@@ -52,7 +94,8 @@ function TicketDetail() {
       setComments([...comments, addedComment]);
       setNewComment('');
     } catch (err) {
-      alert('Failed to add comment.');
+      console.error(err);
+      window.alert('Failed to add comment.');
     }
   };
 
@@ -62,7 +105,30 @@ function TicketDetail() {
       await ticketService.deleteComment(commentId);
       setComments(comments.filter(c => c.id !== commentId));
     } catch (err) {
-      alert('Failed to delete comment.');
+      console.error(err);
+      window.alert('Failed to delete comment.');
+    }
+  };
+
+  const handleDeleteTicket = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete this ticket?")) return;
+    try {
+      await ticketService.deleteTicket(id);
+      navigate('/hub/tickets');
+    } catch (err) {
+      console.error(err);
+      window.alert('Failed to delete ticket.');
+    }
+  };
+
+  const handleUpdateTicket = async () => {
+    try {
+      const updated = await ticketService.updateTicket(id, editForm);
+      setTicket({ ...ticket, ...updated });
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      window.alert('Failed to update ticket. Ensure all fields are filled.');
     }
   };
 
@@ -81,15 +147,53 @@ function TicketDetail() {
   if (error || !ticket) return <div className="text-center py-20 text-red-500">{error || 'Ticket not found'}</div>;
 
   const canEditStatus = user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+  const isAuthor = ticket.authorId === user?.id;
+  const canEditContent = (isAuthor && ticket.status === 'OPEN') || user?.role === 'ADMIN';
+  const canDeleteTicket = isAuthor || user?.role === 'ADMIN';
+
+  const canViewTicket = isAuthor || user?.role === 'ADMIN' || user?.role === 'TECHNICIAN';
+  
+  if (!canViewTicket) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
+        <p className="text-gray-600 mb-8">You do not have permission to view this ticket.</p>
+        <button onClick={() => navigate('/hub/tickets')} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">Return to Dashboard</button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <button onClick={() => navigate('/tickets')} className="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center mb-4">
-        ← Back to Tickets
-      </button>
+      <div className="flex justify-between items-center mb-2">
+        <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
+          <span>🎓</span> Smart Campus
+        </div>
+        <button onClick={() => navigate('/hub/tickets')} className="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center px-4 py-2 bg-indigo-50 rounded-lg transition-colors">
+          ← Back to Dashboard
+        </button>
+      </div>
+
+      {ticket.scheduledMeetingTime && (
+        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg shadow-sm">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-indigo-800">Meeting Scheduled for: {new Date(ticket.scheduledMeetingTime).toLocaleString()}</h3>
+              <div className="mt-2 text-sm text-indigo-700">
+                <p>{ticket.meetingMessage || 'Please visit the designated location to discuss your ticket.'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-200">
-        <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50 flex-wrap gap-4">
           <h3 className="text-lg leading-6 font-bold text-gray-900 flex items-center gap-3">
             Ticket Details
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(ticket.status)}`}>
@@ -97,43 +201,88 @@ function TicketDetail() {
             </span>
           </h3>
           
-          {canEditStatus && (
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <span className="text-gray-500">Update Status:</span>
-              <select 
-                value={ticket.status} 
-                onChange={handleStatusChange}
-                className="block w-40 pl-3 pr-10 py-2 border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="CLOSED">Closed</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-            </div>
-          )}
+          <div className="flex gap-2 items-center flex-wrap">
+            {canEditContent && !isEditing && (
+              <button onClick={() => setIsEditing(true)} className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">Edit Ticket</button>
+            )}
+            {canEditContent && isEditing && (
+              <>
+                <button onClick={() => setIsEditing(false)} className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
+                <button onClick={handleUpdateTicket} className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium tracking-wide">Save</button>
+              </>
+            )}
+            {canDeleteTicket && (
+              <button onClick={handleDeleteTicket} className="px-3 py-1 text-sm bg-red-50 text-red-600 border border-red-200 rounded-md hover:bg-red-100 font-medium">Delete</button>
+            )}
+            {canEditStatus && (
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span className="text-gray-500">Update Status:</span>
+                <select 
+                  value={ticket.status} 
+                  onChange={handleStatusChange}
+                  className="block w-40 pl-3 pr-10 py-2 border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                >
+                  <option value="OPEN">Open</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                  <option value="CLOSED">Closed</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="px-6 py-6">
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Title</dt>
-              <dd className="mt-1 text-sm text-gray-900 font-bold">{ticket.title}</dd>
+          {isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <input type="text" value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Priority</label>
+                  <select value={editForm.priority} onChange={e => setEditForm({...editForm, priority: e.target.value})} className="mt-1 block w-full border border-gray-300 py-2 pl-3 pr-10 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Contact Details</label>
+                <input type="text" value={editForm.contactDetails} onChange={e => setEditForm({...editForm, contactDetails: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea rows="4" value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+              </div>
             </div>
+          ) : (
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Title</dt>
+                <dd className="mt-1 text-sm text-gray-900 font-bold">{ticket.title}</dd>
+              </div>
 
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Category & Priority</dt>
-              <dd className="mt-1 text-sm text-gray-900">{ticket.category} — <b>{ticket.priority}</b></dd>
-            </div>
-            <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Created For Contact</dt>
-              <dd className="mt-1 text-sm text-gray-900">{ticket.contactDetails}</dd>
-            </div>
-            <div className="sm:col-span-2">
-              <dt className="text-sm font-medium text-gray-500">Description</dt>
-              <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-md border border-gray-100">{ticket.description}</dd>
-            </div>
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Category & Priority</dt>
+                <dd className="mt-1 text-sm text-gray-900">{ticket.category} — <b>{ticket.priority}</b></dd>
+              </div>
+              <div className="sm:col-span-1">
+                <dt className="text-sm font-medium text-gray-500">Created For Contact</dt>
+                <dd className="mt-1 text-sm text-gray-900">{ticket.contactDetails}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-sm font-medium text-gray-500">Description</dt>
+                <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-md border border-gray-100">{ticket.description}</dd>
+              </div>
+
 
             {ticket.attachments && ticket.attachments.length > 0 && (
               <div className="sm:col-span-2">
@@ -148,7 +297,54 @@ function TicketDetail() {
               </div>
             )}
           </dl>
+          )}
         </div>
+
+        {canEditStatus && (
+          <div className="px-6 py-6 border-t border-gray-200 bg-gray-50">
+            <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Schedule Meeting
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Meeting Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  value={meetingTime ? new Date(meetingTime).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => setMeetingTime(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Meeting Message / Instructions</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={meetingMessage}
+                    onChange={(e) => setMeetingMessage(e.target.value)}
+                    placeholder="e.g. Please visit the admin office, room 302"
+                    className="block w-full border border-gray-300 rounded-md py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                  <button 
+                    onClick={() => handleUpdateMeeting(false)}
+                    className="whitespace-nowrap px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+                  >
+                    Save Schedule
+                  </button>
+                  {ticket.scheduledMeetingTime && (
+                    <button 
+                      onClick={() => handleUpdateMeeting(true)}
+                      className="whitespace-nowrap px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 shadow-sm"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-200">

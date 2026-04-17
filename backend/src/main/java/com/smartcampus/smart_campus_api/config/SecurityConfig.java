@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,6 +48,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                    new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED),
+                    new org.springframework.security.web.util.matcher.RegexRequestMatcher("^/api/.*", null)
+                )
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)

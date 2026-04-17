@@ -35,16 +35,11 @@ function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (location.state?.from) {
+      if (destination && destination !== '/login') {
         navigate(destination, { replace: true });
       } else {
-        if (user.role === 'ADMIN') {
-          navigate('/admin', { replace: true });
-        } else if (user.role === 'TECHNICIAN') {
-          navigate('/technician', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
+        // Direct everyone to /hub regardless of role since they share the same dashboard space
+        navigate('/hub', { replace: true });
       }
     }
   }, [user, navigate, location.state, destination]);

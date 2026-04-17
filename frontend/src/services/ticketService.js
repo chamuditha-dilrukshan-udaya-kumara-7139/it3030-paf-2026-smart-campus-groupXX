@@ -25,9 +25,21 @@ export const ticketService = {
     return response.data;
   },
 
+  // Update a ticket's main content
+  updateTicket: async (id, ticketData) => {
+    const response = await http.put(`/api/tickets/${id}`, ticketData);
+    return response.data;
+  },
+
+  // Delete a ticket
+  deleteTicket: async (id) => {
+    const response = await http.delete(`/api/tickets/${id}`);
+    return response.data;
+  },
+
   // Update a ticket's status 
-  updateTicketStatus: async (id, status) => {
-    const response = await http.put(`/api/tickets/${id}/status`, { status });
+  updateTicketStatus: async (id, statusData) => {
+    const response = await http.put(`/api/tickets/${id}/status`, statusData);
     return response.data;
   },
 

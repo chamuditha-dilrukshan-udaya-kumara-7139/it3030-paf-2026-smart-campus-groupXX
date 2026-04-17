@@ -52,7 +52,8 @@ function CreateTicket() {
         attachments: images
       };
       await ticketService.createTicket(dataToSubmit);
-      navigate('/tickets');
+      alert('Ticket created successfully!');
+      navigate('/hub/tickets');
     } catch (err) {
       if (err.response && err.response.data) {
         if (typeof err.response.data === 'object' && !err.response.data.message) {
@@ -72,6 +73,15 @@ function CreateTicket() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
+          <span>🎓</span> Smart Campus
+        </div>
+        <button onClick={() => navigate('/hub/tickets')} className="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center px-4 py-2 bg-indigo-50 rounded-lg transition-colors">
+          ← Back to Dashboard
+        </button>
+      </div>
+
       <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-8 sm:p-10 text-white">
           <h2 className="text-3xl font-extrabold tracking-tight">Report an Issue</h2>
@@ -212,10 +222,10 @@ function CreateTicket() {
           <div className="pt-5 flex justify-end gap-3 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => navigate('/tickets')}
-              className="px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={() => navigate('/hub/tickets')}
+              className="bg-white py-3 px-6 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150"
             >
-              Cancel
+              Cancel & Back
             </button>
             <button
               type="submit"
