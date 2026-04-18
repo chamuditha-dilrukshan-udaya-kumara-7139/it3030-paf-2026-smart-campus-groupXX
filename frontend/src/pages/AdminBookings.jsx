@@ -7,18 +7,16 @@ export default function AdminBookings() {
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [resources, setResources] = useState([]);
 
   // Filter state
   const [filters, setFilters] = useState({
     status: '',
-    resourceId: '',
+    venue: '',
     date: ''
   });
 
   useEffect(() => {
     loadBookings();
-    loadResources();
   }, []);
 
   const loadBookings = async () => {
@@ -33,16 +31,6 @@ export default function AdminBookings() {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadResources = async () => {
-    try {
-      const response = await fetch('/api/resources');
-      const data = await response.json();
-      setResources(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to load resources:', err);
     }
   };
 
@@ -72,7 +60,7 @@ export default function AdminBookings() {
   };
 
   const handleReset = () => {
-    setFilters({ status: '', resourceId: '', date: '' });
+    setFilters({ status: '', venue: '', date: '' });
     setFilteredBookings(bookings);
   };
 
@@ -154,24 +142,19 @@ export default function AdminBookings() {
             </select>
           </div>
 
-          {/* Resource Filter */}
+          {/* Venue Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Resource
+              Venue
             </label>
-            <select
-              name="resourceId"
-              value={filters.resourceId}
+            <input
+              type="text"
+              name="venue"
+              value={filters.venue}
               onChange={handleFilterChange}
+              placeholder="Filter by venue name"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Resources</option>
-              {resources.map(resource => (
-                <option key={resource.id} value={resource.id}>
-                  {resource.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Date Filter */}

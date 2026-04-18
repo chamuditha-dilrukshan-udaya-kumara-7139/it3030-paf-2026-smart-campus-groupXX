@@ -56,7 +56,7 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<List<BookingResponseDTO>> getBookings(
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false) String resourceId,
+            @RequestParam(required = false) String venue,
             @RequestParam(required = false) LocalDate date) {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -66,12 +66,12 @@ public class BookingController {
 
         List<BookingResponseDTO> bookings;
 
-        // If ADMIN and filters provided, return filtered bookings
-        if (role == Role.ADMIN && (status != null || resourceId != null || date != null)) {
-            bookings = bookingService.getFilteredBookings(status, resourceId, date);
+        // If ADMIN or TECHNICIAN and filters provided, return filtered bookings (all bookings)
+        if ((role == Role.ADMIN || role == Role.TECHNICIAN) && (status != null || venue != null || date != null)) {
+            bookings = bookingService.getFilteredBookings(status, venue, date);
         }
-        // If ADMIN and no filters, return all bookings
-        else if (role == Role.ADMIN) {
+        // If ADMIN or TECHNICIAN and no filters, return all bookings
+        else if (role == Role.ADMIN || role == Role.TECHNICIAN) {
             bookings = bookingService.getAllBookings();
         }
         // If USER, return only their own bookings

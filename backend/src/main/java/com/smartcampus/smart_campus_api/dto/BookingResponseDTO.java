@@ -18,8 +18,7 @@ public class BookingResponseDTO {
 
     private String id;
 
-    private String resourceId;
-    private String resourceName;
+    private String venue;
 
     private String requestedById;
     private String requestedByName;

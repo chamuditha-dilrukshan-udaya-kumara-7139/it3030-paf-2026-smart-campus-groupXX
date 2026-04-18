@@ -17,25 +17,25 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     // Get all bookings for a specific user
     List<Booking> findByRequestedById(String userId);
 
-    // Get all bookings for a specific resource
-    List<Booking> findByResourceId(String resourceId);
+    // Get all bookings for a specific venue
+    List<Booking> findByVenue(String venue);
 
     // Get all approved bookings for filtering in conflict detection
-    List<Booking> findByResourceIdAndDateAndStatus(String resourceId, LocalDate date, BookingStatus status);
+    List<Booking> findByVenueAndDateAndStatus(String venue, LocalDate date, BookingStatus status);
 
     // Get bookings by status
     List<Booking> findByStatus(BookingStatus status);
 
-    // Get bookings by resource and status
-    List<Booking> findByResourceIdAndStatus(String resourceId, BookingStatus status);
+    // Get bookings by venue and status
+    List<Booking> findByVenueAndStatus(String venue, BookingStatus status);
 
     // Get bookings by date
     List<Booking> findByDate(LocalDate date);
 
     // Get bookings by multiple criteria for filtering
-    List<Booking> findByStatusAndResourceIdAndDate(BookingStatus status, String resourceId, LocalDate date);
+    List<Booking> findByStatusAndVenueAndDate(BookingStatus status, String venue, LocalDate date);
 
-    // Find conflicting bookings - same resource, same date, APPROVED status, overlapping time
-    @Query("{ 'resource.$id': ?0, 'date': ?1, 'status': 'APPROVED', 'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
-    List<Booking> findConflictingBookings(String resourceId, LocalDate date, LocalTime startTime, LocalTime endTime);
+    // Find conflicting bookings - same venue, same date, APPROVED status, overlapping time
+    @Query("{ 'venue': ?0, 'date': ?1, 'status': 'APPROVED', 'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
+    List<Booking> findConflictingBookings(String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
 }

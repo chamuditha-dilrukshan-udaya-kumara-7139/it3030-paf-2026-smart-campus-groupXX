@@ -47,10 +47,6 @@ public class BookingService {
      * - Sets status as PENDING by default
      */
     public BookingResponseDTO createBooking(String userId, BookingRequestDTO requestDTO) {
-        // Validate resource exists
-        Resource resource = resourceRepository.findById(requestDTO.getResourceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with ID: " + requestDTO.getResourceId()));
-
         // Validate user exists
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
@@ -60,9 +56,23 @@ public class BookingService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
+        // Validate date is not in the past
+        LocalDate today = LocalDate.now();
+        if (requestDTO.getDate().isBefore(today)) {
+            throw new IllegalArgumentException("Cannot book for past dates");
+        }
+
+        // Validate time is between 8am and 8pm
+        LocalTime businessStart = LocalTime.of(8, 0);
+        LocalTime businessEnd = LocalTime.of(20, 0);
+        if (requestDTO.getStartTime().isBefore(businessStart) || requestDTO.getStartTime().isAfter(businessEnd) ||
+            requestDTO.getEndTime().isBefore(businessStart) || requestDTO.getEndTime().isAfter(businessEnd)) {
+            throw new IllegalArgumentException("Booking time must be between 8:00 AM and 8:00 PM");
+        }
+
         // Check for scheduling conflicts with APPROVED bookings
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
-                resource.getId(),
+                requestDTO.getVenue(),
                 requestDTO.getDate(),
                 requestDTO.getStartTime(),
                 requestDTO.getEndTime()
@@ -70,13 +80,13 @@ public class BookingService {
 
         if (!conflicts.isEmpty()) {
             throw new BookingConflictException(
-                    "Scheduling conflict detected. This resource is already booked during the requested time on " + requestDTO.getDate()
+                    "Scheduling conflict detected. This venue is already booked during the requested time on " + requestDTO.getDate()
             );
         }
 
         // Create new booking with PENDING status
         Booking booking = Booking.builder()
-                .resource(resource)
+                .venue(requestDTO.getVenue())
                 .requestedBy(user)
                 .date(requestDTO.getDate())
                 .startTime(requestDTO.getStartTime())
@@ -117,7 +127,7 @@ public class BookingService {
      * Get filtered bookings (admin only)
      * Can filter by status, resourceId, and/or date
      */
-    public List<BookingResponseDTO> getFilteredBookings(BookingStatus status, String resourceId, LocalDate date) {
+    public List<BookingResponseDTO> getFilteredBookings(BookingStatus status, String venue, LocalDate date) {
         List<Booking> bookings = bookingRepository.findAll();
 
         if (status != null) {
@@ -126,9 +136,9 @@ public class BookingService {
                     .collect(Collectors.toList());
         }
 
-        if (resourceId != null && !resourceId.isEmpty()) {
+        if (venue != null && !venue.isEmpty()) {
             bookings = bookings.stream()
-                    .filter(b -> b.getResource().getId().equals(resourceId))
+                    .filter(b -> b.getVenue().equalsIgnoreCase(venue))
                     .collect(Collectors.toList());
         }
 
@@ -180,9 +190,9 @@ public class BookingService {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
 
-        // Validate that the user is actually an admin
-        if (admin.getRole() != Role.ADMIN) {
-            throw new UnauthorizedAccessException("Only admins can update booking status");
+        // Validate that the user is actually an admin or technician
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.TECHNICIAN) {
+            throw new UnauthorizedAccessException("Only admins and technicians can update booking status");
         }
 
         // Can only transition from PENDING to APPROVED or REJECTED
@@ -201,7 +211,7 @@ public class BookingService {
         // If approving, check for conflicts again (in case another booking was approved in between)
         if (updateDTO.getStatus() == BookingStatus.APPROVED) {
             List<Booking> conflicts = bookingRepository.findConflictingBookings(
-                    booking.getResource().getId(),
+                    booking.getVenue(),
                     booking.getDate(),
                     booking.getStartTime(),
                     booking.getEndTime()
@@ -223,7 +233,7 @@ public class BookingService {
         try {
             notificationService.createNotification(
                     updatedBooking.getRequestedBy().getId(),
-                    "Your booking for " + updatedBooking.getResource().getName() +
+                    "Your booking for " + updatedBooking.getVenue() +
                     " has been " + updatedBooking.getStatus().toString().toLowerCase() +
                     (updateDTO.getReason() != null ? ". Reason: " + updateDTO.getReason() : "")
             );
@@ -262,7 +272,7 @@ public class BookingService {
         try {
             notificationService.createNotification(
                     userId,
-                    "Your booking for " + booking.getResource().getName() + " has been cancelled"
+                    "Your booking for " + booking.getVenue() + " has been cancelled"
             );
         } catch (Exception e) {
             System.err.println("Failed to send notification: " + e.getMessage());
@@ -279,8 +289,8 @@ public class BookingService {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
 
-        if (admin.getRole() != Role.ADMIN) {
-            throw new UnauthorizedAccessException("Only admins can delete bookings");
+        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.TECHNICIAN) {
+            throw new UnauthorizedAccessException("Only admins and technicians can delete bookings");
         }
 
         bookingRepository.deleteById(bookingId);
@@ -292,8 +302,7 @@ public class BookingService {
     private BookingResponseDTO convertToResponseDTO(Booking booking) {
         return BookingResponseDTO.builder()
                 .id(booking.getId())
-                .resourceId(booking.getResource().getId())
-                .resourceName(booking.getResource().getName())
+                .venue(booking.getVenue())
                 .requestedById(booking.getRequestedBy().getId())
                 .requestedByName(booking.getRequestedBy().getName())
                 .requestedByEmail(booking.getRequestedBy().getEmail())

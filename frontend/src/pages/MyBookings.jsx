@@ -8,11 +8,9 @@ export default function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [resources, setResources] = useState([]);
 
   useEffect(() => {
     loadBookings();
-    loadResources();
   }, []);
 
   const loadBookings = async () => {
@@ -26,19 +24,6 @@ export default function MyBookings() {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadResources = async () => {
-    try {
-      // Fetch resources from the API
-      // You may need to create a resourceService or use ticketService
-      // For now, we'll fetch from /api/resources
-      const response = await fetch('/api/resources');
-      const data = await response.json();
-      setResources(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to load resources:', err);
     }
   };
 
@@ -113,7 +98,7 @@ export default function MyBookings() {
       {/* Booking Form */}
       {showForm && (
         <div className="mb-8">
-          <BookingForm onBookingCreated={handleBookingCreated} resources={resources} />
+          <BookingForm onBookingCreated={handleBookingCreated} />
         </div>
       )}
 

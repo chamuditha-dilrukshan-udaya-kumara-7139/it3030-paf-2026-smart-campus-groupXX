@@ -66,7 +66,7 @@ export default function BookingCard({ booking, isAdmin = false, onBookingUpdate 
     <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-semibold text-gray-800">{booking.resourceName}</h3>
+          <h3 className="text-xl font-semibold text-gray-800">{booking.venue}</h3>
           <p className="text-sm text-gray-500">ID: {booking.id}</p>
         </div>
         <BookingStatusBadge status={booking.status} />

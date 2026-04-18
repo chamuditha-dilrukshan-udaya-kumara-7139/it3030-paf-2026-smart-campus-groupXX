@@ -42,13 +42,13 @@ function Sidebar() {
               ⬡ Bookings
             </Link>
           </li>
-          {user?.role === 'ADMIN' && (
+          {user?.role === 'ADMIN' || user?.role === 'TECHNICIAN' ? (
             <li>
               <Link to="/hub/admin/bookings" className={`block px-4 py-2 rounded ${location.pathname === '/hub/admin/bookings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
                 ⬡ Manage Bookings
               </Link>
             </li>
-          )}
+          ) : null}
         </ul>
       </nav>
 

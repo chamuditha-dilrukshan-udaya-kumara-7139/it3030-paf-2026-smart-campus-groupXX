@@ -25,9 +25,8 @@ public class Booking {
     @Id
     private String id;
 
-    @NotNull(message = "Resource ID is required")
-    @DBRef
-    private Resource resource;
+    @NotBlank(message = "Venue is required")
+    private String venue;
 
     @NotNull(message = "Requested by user ID is required")
     @DBRef

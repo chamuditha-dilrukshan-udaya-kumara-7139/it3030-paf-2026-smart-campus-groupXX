@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import * as bookingService from '../services/bookingService';
 
-export default function BookingForm({ onBookingCreated, resources = [] }) {
+export default function BookingForm({ onBookingCreated }) {
   const [formData, setFormData] = useState({
-    resourceId: '',
+    venue: '',
     date: '',
     startTime: '',
     endTime: '',
@@ -32,8 +32,8 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
   };
 
   const validateForm = () => {
-    if (!formData.resourceId.trim()) {
-      setError('Please select a resource');
+    if (!formData.venue.trim()) {
+      setError('Please enter a venue');
       return false;
     }
     if (!formData.date) {
@@ -70,6 +70,18 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
       return false;
     }
 
+    // Validate time is between 8am and 8pm
+    const startTime = formData.startTime;
+    const endTime = formData.endTime;
+    const businessStart = '08:00';
+    const businessEnd = '20:00';
+
+    if (startTime < businessStart || startTime > businessEnd ||
+        endTime < businessStart || endTime > businessEnd) {
+      setError('Booking time must be between 8:00 AM and 8:00 PM');
+      return false;
+    }
+
     return true;
   };
 
@@ -87,7 +99,7 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
       await bookingService.createBooking(formData);
       setSuccess('Booking request submitted successfully! Waiting for admin approval.');
       setFormData({
-        resourceId: '',
+        venue: '',
         date: '',
         startTime: '',
         endTime: '',
@@ -126,25 +138,20 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Resource Selection */}
+        {/* Venue */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Resource *
+            Venue *
           </label>
-          <select
-            name="resourceId"
-            value={formData.resourceId}
+          <input
+            type="text"
+            name="venue"
+            value={formData.venue}
             onChange={handleInputChange}
+            placeholder="e.g., Main Auditorium, Conference Room A, Sports Ground"
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-          >
-            <option value="">-- Choose a resource --</option>
-            {resources.map(resource => (
-              <option key={resource.id} value={resource.id}>
-                {resource.name} ({resource.type}) - Capacity: {resource.capacity}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         {/* Date */}
@@ -157,6 +164,7 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
             name="date"
             value={formData.date}
             onChange={handleInputChange}
+            min={new Date().toISOString().split('T')[0]}
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
@@ -173,6 +181,8 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
               name="startTime"
               value={formData.startTime}
               onChange={handleInputChange}
+              min="08:00"
+              max="20:00"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -186,6 +196,8 @@ export default function BookingForm({ onBookingCreated, resources = [] }) {
               name="endTime"
               value={formData.endTime}
               onChange={handleInputChange}
+              min="08:00"
+              max="20:00"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />

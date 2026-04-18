@@ -17,8 +17,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class BookingRequestDTO {
 
-    @NotNull(message = "Resource ID is required")
-    private String resourceId;
+    @NotBlank(message = "Venue is required")
+    private String venue;
 
     @NotNull(message = "Date is required")
     private LocalDate date;
