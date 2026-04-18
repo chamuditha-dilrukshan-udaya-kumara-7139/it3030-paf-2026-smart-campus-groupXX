@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth") 
 public class AuthController {
 
     private final UserService userService;
@@ -66,14 +66,6 @@ public class AuthController {
                     request.password()
                 )
             );
-
-            // SecurityContext context = SecurityContextHolder.createEmptyContext();
-            // context.setAuthentication(authentication);
-            // SecurityContextHolder.setContext(context);
-            // httpServletRequest.getSession(true).setAttribute(
-            //     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            //     context
-            // );
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtService.generateToken(userDetails);
