@@ -22,30 +22,35 @@ function Sidebar() {
   return (
     <div className="w-64 bg-slate-900 text-white flex flex-col h-screen">
       <div className="p-6">
-        <h1 className="text-xl font-bold text-blue-500">🎓 Smart Campus</h1>
+        <button
+          onClick={() => navigate('/hub')}
+          className="text-xl font-bold text-blue-500 hover:text-blue-400 transition-colors text-left"
+        >
+          Smart Campus
+        </button>
       </div>
 
       <nav className="flex-1 px-4">
         <ul className="space-y-2">
           <li>
             <Link to="/hub" className={`block px-4 py-2 rounded ${location.pathname === '/hub' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-              ⬡ Facilities & Assets
+              Facilities & Assets
             </Link>
           </li>
           <li>
             <Link to="/hub/tickets" className={`block px-4 py-2 rounded ${location.pathname.startsWith('/hub/tickets') ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-              ⬡ Maintenance Tickets
+              Maintenance Tickets
             </Link>
           </li>
           <li>
             <Link to="/hub/bookings" className={`block px-4 py-2 rounded ${location.pathname === '/hub/bookings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-              ⬡ Bookings
+              Bookings
             </Link>
           </li>
           {user?.role === 'ADMIN' || user?.role === 'TECHNICIAN' ? (
             <li>
               <Link to="/hub/admin/bookings" className={`block px-4 py-2 rounded ${location.pathname === '/hub/admin/bookings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                ⬡ Manage Bookings
+                Manage Bookings
               </Link>
             </li>
           ) : null}
