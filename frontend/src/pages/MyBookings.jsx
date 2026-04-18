@@ -57,6 +57,10 @@ export default function MyBookings() {
   };
 
   const counts = getStatusCounts();
+  const bookingGridClassName =
+    viewMode === 'tiles'
+      ? 'grid grid-cols-1 gap-6 md:grid-cols-2'
+      : 'grid grid-cols-1 gap-6';
 
   if (loading) {
     return (
@@ -102,33 +106,37 @@ export default function MyBookings() {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-500 text-white py-2 px-6 rounded hover:bg-blue-600 transition"
-            >
-              {showForm ? 'Hide Form' : 'Create New Booking'}
-            </button>
-          </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Booking Controls</p>
+                  <p className="text-xs text-slate-500">Create a new booking or choose how your bookings are displayed.</p>
+                </div>
 
-          <div className="mb-6 flex flex-col gap-3 rounded-lg bg-white border border-slate-200 p-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-800">View</p>
-              <p className="text-xs text-slate-500">Choose how bookings should be displayed.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {viewModes.map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded text-sm font-medium capitalize transition ${
-                    viewMode === mode
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
+                <div className="flex flex-col gap-3 md:items-end">
+                  <div className="w-full md:w-52">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">View</label>
+                    <select
+                      value={viewMode}
+                      onChange={(e) => setViewMode(e.target.value)}
+                      className="w-full rounded border border-gray-300 p-2 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {viewModes.map((mode) => (
+                        <option key={mode} value={mode}>
+                          {mode}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="bg-blue-500 text-white py-2 px-6 rounded hover:bg-blue-600 transition"
+                  >
+                    {showForm ? 'Hide Form' : 'Create New Booking'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -168,7 +176,7 @@ export default function MyBookings() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={bookingGridClassName}>
               {bookings.map((booking) => (
                 <BookingCard
                   key={booking.id}

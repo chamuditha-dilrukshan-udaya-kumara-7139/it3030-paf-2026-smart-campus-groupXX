@@ -89,6 +89,10 @@ export default function AdminBookings() {
   };
 
   const distribution = getStatusDistribution();
+  const bookingGridClassName =
+    viewMode === 'tiles'
+      ? 'grid grid-cols-1 gap-6 md:grid-cols-2'
+      : 'grid grid-cols-1 gap-6';
 
   if (loading) {
     return (
@@ -136,7 +140,28 @@ export default function AdminBookings() {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Filters</h2>
+            <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+                <p className="text-sm text-slate-500">Filter bookings and switch the display format from here.</p>
+              </div>
+
+              <div className="w-full md:w-52">
+                <label className="mb-2 block text-sm font-medium text-gray-700">View</label>
+                <select
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value)}
+                  className="w-full rounded border border-gray-300 p-2 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {viewModes.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -188,28 +213,6 @@ export default function AdminBookings() {
             </div>
           </div>
 
-          <div className="mb-6 flex flex-col gap-3 rounded-lg bg-white border border-slate-200 p-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-800">View</p>
-              <p className="text-xs text-slate-500">Choose how bookings should be displayed.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {viewModes.map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded text-sm font-medium capitalize transition ${
-                    viewMode === mode
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {error && (
             <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
@@ -227,7 +230,7 @@ export default function AdminBookings() {
               <p className="text-sm text-gray-600 mb-4">
                 Showing {filteredBookings.length} of {bookings.length} bookings
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className={bookingGridClassName}>
                 {filteredBookings.map((booking) => (
                   <BookingCard
                     key={booking.id}
