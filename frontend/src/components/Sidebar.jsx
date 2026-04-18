@@ -1,20 +1,20 @@
 import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { logout } from '../services/api';
+import { logout as logoutRequest } from '../services/api';
 
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await logoutRequest();
     } catch (error) {
       console.error(error);
     } finally {
-      setUser(null);
+      logout();
       navigate('/login', { replace: true });
     }
   };
