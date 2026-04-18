@@ -51,6 +51,10 @@ public class UserService {
             .orElseThrow(() -> new NoSuchElementException("User not found for email: " + email));
     }
 
+    public User getUserByEmail(String email) {
+        return getByEmail(email);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }

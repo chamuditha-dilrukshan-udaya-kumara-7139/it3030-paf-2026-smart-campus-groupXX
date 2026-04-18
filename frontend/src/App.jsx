@@ -7,6 +7,8 @@ import SignupPage from './pages/SignupPage';
 import TicketsDashboard from './pages/TicketsDashboard';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
+import MyBookings from './pages/MyBookings';
+import AdminBookings from './pages/AdminBookings';
 
 function App() {
   return (
@@ -60,6 +62,24 @@ function App() {
         element={
           <AuthenticatedRoute>
             <TicketDetail />
+          </AuthenticatedRoute>
+        }
+      />
+
+      <Route
+        path="/hub/bookings"
+        element={
+          <AuthenticatedRoute>
+            <MyBookings />
+          </AuthenticatedRoute>
+        }
+      />
+
+      <Route
+        path="/hub/admin/bookings"
+        element={
+          <AuthenticatedRoute>
+            <AdminBookings />
           </AuthenticatedRoute>
         }
       />

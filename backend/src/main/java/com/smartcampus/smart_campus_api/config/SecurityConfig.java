@@ -46,6 +46,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
+                // Booking endpoints: status updates and deletes are ADMIN only
+                .requestMatchers(HttpMethod.PATCH, "/api/bookings/**/status").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasRole("ADMIN")
+                // All other /api/** endpoints require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )

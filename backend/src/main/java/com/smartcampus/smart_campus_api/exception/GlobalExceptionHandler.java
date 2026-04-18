@@ -34,4 +34,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
         return ResponseEntity.status(403).body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(BookingConflictException.class)
+    public ResponseEntity<Map<String, String>> handleBookingConflictException(BookingConflictException ex) {
+        return ResponseEntity.status(409).body(Map.of("message", ex.getMessage()));
+    }
 }

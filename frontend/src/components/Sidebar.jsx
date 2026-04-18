@@ -37,6 +37,18 @@ function Sidebar() {
               ⬡ Maintenance Tickets
             </Link>
           </li>
+          <li>
+            <Link to="/hub/bookings" className={`block px-4 py-2 rounded ${location.pathname === '/hub/bookings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+              ⬡ Bookings
+            </Link>
+          </li>
+          {user?.role === 'ADMIN' && (
+            <li>
+              <Link to="/hub/admin/bookings" className={`block px-4 py-2 rounded ${location.pathname === '/hub/admin/bookings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+                ⬡ Manage Bookings
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 
