@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
@@ -35,11 +34,12 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     // Get bookings by multiple criteria for filtering
     List<Booking> findByStatusAndVenueAndDate(BookingStatus status, String venue, LocalDate date);
 
-    // Find conflicting bookings - same venue, same date, APPROVED status, overlapping time
-    @Query("{ 'venue': ?0, 'date': ?1, 'status': 'APPROVED', 'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
-    List<Booking> findConflictingBookings(String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
+    // Find conflicting active bookings - same venue, same date, overlapping time.
+    // PENDING and APPROVED bookings both block the slot.
+    @Query("{ 'venue': ?0, 'date': ?1, 'status': { $in: ['PENDING', 'APPROVED'] }, 'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
+    List<Booking> findActiveConflictingBookings(String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
 
-    // Find conflicting bookings excluding a specific booking ID
-    @Query("{ '_id': { $ne: ?0 }, 'venue': ?1, 'date': ?2, 'status': 'APPROVED', 'startTime': { $lt: ?4 }, 'endTime': { $gt: ?3 } }")
-    List<Booking> findConflictingBookingsExcludingId(String excludeId, String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
+    // Find conflicting active bookings excluding a specific booking ID
+    @Query("{ '_id': { $ne: ?0 }, 'venue': ?1, 'date': ?2, 'status': { $in: ['PENDING', 'APPROVED'] }, 'startTime': { $lt: ?4 }, 'endTime': { $gt: ?3 } }")
+    List<Booking> findActiveConflictingBookingsExcludingId(String excludeId, String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
 }

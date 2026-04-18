@@ -70,8 +70,8 @@ public class BookingService {
             throw new IllegalArgumentException("Booking time must be between 8:00 AM and 8:00 PM");
         }
 
-        // Check for scheduling conflicts with APPROVED bookings
-        List<Booking> conflicts = bookingRepository.findConflictingBookings(
+        // Block bookings that overlap any active request for the same venue and date.
+        List<Booking> conflicts = bookingRepository.findActiveConflictingBookings(
                 requestDTO.getVenue(),
                 requestDTO.getDate(),
                 requestDTO.getStartTime(),
@@ -80,7 +80,7 @@ public class BookingService {
 
         if (!conflicts.isEmpty()) {
             throw new BookingConflictException(
-                    "Scheduling conflict detected. This venue is already booked during the requested time on " + requestDTO.getDate()
+                    "You can't book this venue for that time because another booking already exists on " + requestDTO.getDate()
             );
         }
 
@@ -205,7 +205,8 @@ public class BookingService {
 
         // If approving, check for conflicts again (in case another booking was approved in between)
         if (updateDTO.getStatus() == BookingStatus.APPROVED) {
-            List<Booking> conflicts = bookingRepository.findConflictingBookings(
+            List<Booking> conflicts = bookingRepository.findActiveConflictingBookingsExcludingId(
+                    bookingId,
                     booking.getVenue(),
                     booking.getDate(),
                     booking.getStartTime(),
@@ -311,8 +312,8 @@ public class BookingService {
             throw new IllegalArgumentException("Booking time must be between 8:00 AM and 8:00 PM");
         }
 
-        // Check for scheduling conflicts with APPROVED bookings (excluding this booking)
-        List<Booking> conflicts = bookingRepository.findConflictingBookingsExcludingId(
+        // Check for scheduling conflicts with active bookings (excluding this booking)
+        List<Booking> conflicts = bookingRepository.findActiveConflictingBookingsExcludingId(
                 bookingId,
                 requestDTO.getVenue(),
                 requestDTO.getDate(),
@@ -322,7 +323,7 @@ public class BookingService {
 
         if (!conflicts.isEmpty()) {
             throw new BookingConflictException(
-                    "Scheduling conflict detected. This venue is already booked during the requested time on " + requestDTO.getDate()
+                    "You can't book this venue for that time because another booking already exists on " + requestDTO.getDate()
             );
         }
 
