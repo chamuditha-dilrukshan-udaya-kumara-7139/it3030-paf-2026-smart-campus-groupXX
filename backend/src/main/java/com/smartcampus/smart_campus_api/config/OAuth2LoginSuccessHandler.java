@@ -43,7 +43,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String email = oAuth2User.getAttribute("email");
         
         if (email == null) {
-            response.sendRedirect("http://localhost:5177/login?error=email_not_provided");
+            response.sendRedirect("http://localhost:5173/login?error=email_not_provided");
             return;
         }
 
@@ -52,6 +52,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String token = jwtService.generateToken(userDetails);
 
         // redirect to frontend with token
-        response.sendRedirect("http://localhost:5177/login?token=" + token);
+        response.sendRedirect("http://localhost:5173/login?token=" + token);
     }
 }
