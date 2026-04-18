@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
 import { ticketService } from '../services/ticketService';
 
 function CreateTicket() {
@@ -124,7 +125,10 @@ function CreateTicket() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-6">
         <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
           <span>🎓</span> Smart Campus
@@ -311,6 +315,8 @@ function CreateTicket() {
             </button>
           </div>
         </form>
+      </div>
+        </div>
       </div>
     </div>
   );
