@@ -194,10 +194,7 @@ function TicketDetail() {
       <Sidebar />
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex justify-between items-center mb-2">
-        <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
-          <span>🎓</span> Smart Campus
-        </div>
+      <div className="flex justify-end items-center mb-2">
         <button onClick={() => navigate('/hub/tickets')} className="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center px-4 py-2 bg-indigo-50 rounded-lg transition-colors">
           ← Back to Dashboard
         </button>

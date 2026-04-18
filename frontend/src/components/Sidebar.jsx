@@ -22,7 +22,7 @@ function Sidebar() {
   return (
     <div className="w-64 bg-slate-900 text-white flex flex-col h-screen">
       <div className="p-6">
-        <h1 className="text-xl font-bold text-blue-500">🎓 Smart Campus</h1>
+        <Link to="/hub" className="text-xl font-bold text-blue-500 hover:text-blue-400 transition-colors">🎓 Smart Campus</Link>
       </div>
 
       <nav className="flex-1 px-4">

@@ -90,11 +90,6 @@ function TicketsDashboard() {
       <Sidebar />
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <div className="flex justify-between items-center mb-2">
-        <div onClick={() => navigate('/hub')} className="cursor-pointer text-xl font-bold text-blue-600 flex items-center gap-2 hover:text-indigo-800 transition-colors">
-          <span>🎓</span> Smart Campus
-        </div>
-      </div>
 
       <div className="flex justify-between items-center pb-6 border-b border-gray-200">
         <div>
