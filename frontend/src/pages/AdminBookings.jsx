@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BookingCard from '../components/BookingCard';
 import * as bookingService from '../services/bookingService';
 
 export default function AdminBookings() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,15 @@ export default function AdminBookings() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Booking Management</h1>
+        <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl font-bold text-gray-800">Booking Management</h1>
+          <button
+            onClick={() => navigate('/hub')}
+            className="bg-gray-100 text-gray-700 py-2 px-5 rounded border border-gray-300 hover:bg-gray-200 transition self-start"
+          >
+            Back to Home
+          </button>
+        </div>
 
         {/* Status Distribution */}
         <div className="grid grid-cols-4 gap-4 mb-6">
