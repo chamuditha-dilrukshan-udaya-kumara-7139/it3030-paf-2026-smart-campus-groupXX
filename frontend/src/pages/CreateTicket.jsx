@@ -17,8 +17,46 @@ function CreateTicket() {
   
   const [images, setImages] = useState([]);
 
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateField = (name, value) => {
+    const errors = {};
+    
+    switch (name) {
+      case 'title':
+        if (value.length < 3) errors.title = 'Title must be at least 3 characters';
+        if (value.length > 100) errors.title = 'Title must not exceed 100 characters';
+        break;
+      case 'description':
+        if (value.length < 10) errors.description = 'Description must be at least 10 characters';
+        if (value.length > 500) errors.description = 'Description must not exceed 500 characters';
+        break;
+      case 'contactDetails':
+        if (!/^\+?\d{7,15}$/.test(value.replace(/\s/g, ''))) {
+          errors.contactDetails = 'Invalid phone number format (7-15 digits)';
+        }
+        break;
+      case 'category':
+        if (!['IT_EQUIPMENT', 'FURNITURE', 'HVAC', 'PLUMBING', 'OTHER'].includes(value)) {
+          errors.category = 'Please select a valid category';
+        }
+        break;
+      default:
+        break;
+    }
+    
+    return errors;
+  };
+
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    const fieldErrors = validateField(name, value);
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: fieldErrors[name]
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -44,6 +82,20 @@ function CreateTicket() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    const allErrors = {};
+    allErrors.title = validateField('title', formData.title).title;
+    allErrors.description = validateField('description', formData.description).description;
+    allErrors.contactDetails = validateField('contactDetails', formData.contactDetails).contactDetails;
+    allErrors.category = validateField('category', formData.category).category;
+    
+    if (allErrors.title || allErrors.description || allErrors.contactDetails || allErrors.category) {
+      setValidationErrors(allErrors);
+      setError('Please fix all validation errors before submitting.');
+      return;
+    }
+    
     try {
       setLoading(true);
       setError('');
@@ -105,9 +157,15 @@ function CreateTicket() {
                   required
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border"
+                  className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border ${
+                    validationErrors.title ? 'border-red-500 bg-red-50' : ''
+                  }`}
                   placeholder="e.g. Broken projector in Room 4A"
                 />
+                {validationErrors.title && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.title}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">{formData.title.length}/100 characters</p>
               </div>
             </div>
 
@@ -119,7 +177,9 @@ function CreateTicket() {
                   required
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border"
+                  className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border ${
+                    validationErrors.category ? 'border-red-500 bg-red-50' : ''
+                  }`}
                 >
                   <option value="">Select a category</option>
                   <option value="IT_EQUIPMENT">IT Equipment</option>
@@ -128,6 +188,9 @@ function CreateTicket() {
                   <option value="PLUMBING">Plumbing</option>
                   <option value="OTHER">Other</option>
                 </select>
+                {validationErrors.category && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.category}</p>
+                )}
               </div>
             </div>
 
@@ -159,9 +222,15 @@ function CreateTicket() {
                   rows="4"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border"
+                  className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border ${
+                    validationErrors.description ? 'border-red-500 bg-red-50' : ''
+                  }`}
                   placeholder="Provide detailed information about the issue..."
                 />
+                {validationErrors.description && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.description}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">{formData.description.length}/500 characters</p>
               </div>
             </div>
 
@@ -174,9 +243,15 @@ function CreateTicket() {
                   required
                   value={formData.contactDetails}
                   onChange={handleInputChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border"
+                  className={`shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border ${
+                    validationErrors.contactDetails ? 'border-red-500 bg-red-50' : ''
+                  }`}
                   placeholder="+94 77 XXXXXXX"
                 />
+                {validationErrors.contactDetails && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.contactDetails}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">Format: 7-15 digits (e.g., +94771234567 or 0771234567)</p>
               </div>
             </div>
 
@@ -229,8 +304,8 @@ function CreateTicket() {
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="inline-flex justify-center px-6 py-3 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              disabled={loading || validationErrors.title || validationErrors.description || validationErrors.contactDetails || validationErrors.category || !formData.title || !formData.description || !formData.category || !formData.contactDetails}
+              className="inline-flex justify-center px-6 py-3 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Submitting...' : 'Submit Ticket'}
             </button>
