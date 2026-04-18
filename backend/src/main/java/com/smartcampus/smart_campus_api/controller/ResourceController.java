@@ -2,7 +2,7 @@ package com.smartcampus.smart_campus_api.controller;
 
 import com.smartcampus.smart_campus_api.model.Resource;
 import com.smartcampus.smart_campus_api.service.ResourceService;
-import jakarta.validation.Valid; // මේක අලුතින් add වුණා
+import jakarta.validation.Valid; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/resources")
+// Base Endpoint for Resource Management: http://localhost:8080/api/resources
+// This controller handles all CRUD operations related to campus assets.
 public class ResourceController {
 
     @Autowired
@@ -34,7 +36,7 @@ public class ResourceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST create - @Valid එකතු කර ඇත
+   
     @PostMapping
     public ResponseEntity<Resource> createResource(
             @Valid @RequestBody Resource resource) {
@@ -42,7 +44,7 @@ public class ResourceController {
         return ResponseEntity.status(201).body(created);
     }
 
-    // PUT update - @Valid එකතු කර ඇත
+    
     @PutMapping("/{id}")
     public ResponseEntity<Resource> updateResource(
             @PathVariable String id,

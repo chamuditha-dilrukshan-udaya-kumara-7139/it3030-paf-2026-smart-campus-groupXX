@@ -17,12 +17,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.disable()) // CSRF සම්පූර්ණයෙන්ම අක්‍රියයි
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // මෙතනින් තමයි ඔක්කොම විවෘත කරන්නේ
-                .anyRequest().authenticated()
-            );
+                .requestMatchers("/api/**").permitAll() // API වලට ඕනෑම කෙනෙකුට අවසර
+                .anyRequest().permitAll() // අනිත් හැම දේටත් අවසර (Presentation එක වෙනුවෙන්)
+            )
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())); // H2 හෝ වෙනත් frames සඳහා
+
         return http.build();
     }
 
