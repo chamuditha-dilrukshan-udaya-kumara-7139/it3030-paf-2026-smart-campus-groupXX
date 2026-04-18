@@ -1,5 +1,6 @@
 package com.smartcampus.smart_campus_api.controller;
 
+import com.smartcampus.smart_campus_api.dto.AdminUserDto;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import com.smartcampus.smart_campus_api.model.Role;
 import com.smartcampus.smart_campus_api.model.User;
 import com.smartcampus.smart_campus_api.service.UserService;
 import java.util.List;
+import java.util.Comparator;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,12 +32,16 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<AdminUserDto>> getAllUsers() {
+        List<AdminUserDto> users = userService.getAllUsers().stream()
+            .sorted(Comparator.comparing(User::getName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+            .map(AdminUserDto::from)
+            .toList();
+        return ResponseEntity.ok(users);
     }
 
     @PutMapping("/users/{userId}/role")
-    public ResponseEntity<User> updateUserRole(@PathVariable String userId, @RequestBody Role role) {
-        return ResponseEntity.ok(userService.updateUserRole(userId, role));
+    public ResponseEntity<AdminUserDto> updateUserRole(@PathVariable String userId, @RequestBody Role role) {
+        return ResponseEntity.ok(AdminUserDto.from(userService.updateUserRole(userId, role)));
     }
 }

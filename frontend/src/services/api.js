@@ -13,4 +13,5 @@ export const signupWithEmail = (payload) => http.post(`${AUTH_PATH}/register`, p
 export const logout = () => http.post('/logout');
 
 export const getAllUsers = () => http.get('/api/admin/users');
-export const updateUserRole = (userId, role) => http.put(`/api/admin/users/${userId}/role`, `"${role}"`);
+export const updateUserRole = (userId, role) =>
+  http.put(`/api/admin/users/${userId}/role`, `"${role}"`);

@@ -7,6 +7,8 @@ import SignupPage from './pages/SignupPage';
 import TicketsDashboard from './pages/TicketsDashboard';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
+import UserManagementPage from './pages/UserManagementPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -61,6 +63,15 @@ function App() {
           <AuthenticatedRoute>
             <TicketDetail />
           </AuthenticatedRoute>
+        }
+      />
+
+      <Route
+        path="/hub/users"
+        element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <UserManagementPage />
+          </ProtectedRoute>
         }
       />
       

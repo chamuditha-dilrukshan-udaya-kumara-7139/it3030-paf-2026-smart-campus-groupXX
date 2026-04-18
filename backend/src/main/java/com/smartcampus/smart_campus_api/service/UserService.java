@@ -62,6 +62,15 @@ public class UserService {
     public User updateUserRole(String userId, Role role) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found for id: " + userId));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Admin accounts cannot be modified from user management.");
+        }
+
+        if (role != Role.USER && role != Role.TECHNICIAN) {
+            throw new IllegalArgumentException("Admin role cannot be assigned from user management.");
+        }
+
         user.setRole(role);
         return userRepository.save(user);
     }

@@ -21,7 +21,7 @@ http.interceptors.response.use(
   (error) => {
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('auth_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

@@ -3,6 +3,7 @@ package com.smartcampus.smart_campus_api.config;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,7 +35,7 @@ class SecurityConfigTest {
     @Test
     void unauthenticatedUserCannotAccessProtectedResourceEndpoint() throws Exception {
         mockMvc.perform(get("/api/resources"))
-            .andExpect(status().is3xxRedirection());
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -78,5 +79,35 @@ class SecurityConfigTest {
         mockMvc.perform(get("/api/admin/status")
                 .with(user("admin@example.com").roles("ADMIN")))
             .andExpect(status().isOk());
+    }
+
+    @Test
+    void adminUserListDoesNotExposePasswords() throws Exception {
+        when(userService.getAllUsers()).thenReturn(List.of(
+            User.builder()
+                .id("1")
+                .name("Campus User")
+                .email("user@example.com")
+                .password("secret")
+                .role(Role.USER)
+                .build()
+        ));
+
+        mockMvc.perform(get("/api/admin/users")
+                .with(user("admin@example.com").roles("ADMIN")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value("1"))
+            .andExpect(jsonPath("$[0].email").value("user@example.com"))
+            .andExpect(jsonPath("$[0].role").value("USER"))
+            .andExpect(jsonPath("$[0].password").doesNotExist());
+    }
+
+    @Test
+    void nonAdminUserCannotChangeRoles() throws Exception {
+        mockMvc.perform(put("/api/admin/users/123/role")
+                .contentType("application/json")
+                .content("\"TECHNICIAN\"")
+                .with(user("user@example.com").roles("USER")))
+            .andExpect(status().isForbidden());
     }
 }

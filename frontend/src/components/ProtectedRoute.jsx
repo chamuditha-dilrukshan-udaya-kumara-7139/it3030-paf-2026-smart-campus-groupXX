@@ -1,24 +1,9 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-function hasAdminAccess(user) {
-  if (!user) {
-    return false;
-  }
-
-  if (user.role === 'ADMIN') {
-    return true;
-  }
-
-  if (Array.isArray(user.roles)) {
-    return user.roles.includes('ADMIN');
-  }
-
-  return false;
-}
 
 function ProtectedRoute({ children, allowedRoles = ['ADMIN'] }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -36,8 +21,7 @@ function ProtectedRoute({ children, allowedRoles = ['ADMIN'] }) {
   const isAuthorized = allowedRoles.includes(userRole);
 
   if (!isAuthorized) {
-    // Redirect to home if they don't have the required role
-    return <Navigate to="/" replace />;
+    return <Navigate to="/hub" replace state={{ from: location }} />;
   }
 
   return children;
