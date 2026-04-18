@@ -109,7 +109,7 @@ public class BookingService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        return bookingRepository.findByRequestedById(userId).stream()
+        return bookingRepository.findByRequestedBy_Id(userId).stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }

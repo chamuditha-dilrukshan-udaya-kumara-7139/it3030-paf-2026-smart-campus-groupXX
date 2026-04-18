@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // Get all bookings for a specific user
-    List<Booking> findByRequestedById(String userId);
+    List<Booking> findByRequestedBy_Id(String userId);
 
     // Get all bookings for a specific venue
     List<Booking> findByVenue(String venue);
