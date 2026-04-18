@@ -2,11 +2,111 @@ import { useState } from 'react';
 import BookingStatusBadge from './BookingStatusBadge';
 import * as bookingService from '../services/bookingService';
 
-export default function BookingCard({ booking, isAdmin = false, onBookingUpdate, onEditBooking }) {
+export default function BookingCard({ booking, isAdmin = false, onBookingUpdate, onEditBooking, viewMode = 'tiles' }) {
   const [showApprovalPanel, setShowApprovalPanel] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const formattedDate = new Date(booking.date).toLocaleDateString();
+  const timeRange = `${booking.startTime} - ${booking.endTime}`;
+  const cardClassName = {
+    tiles: 'bg-white border border-gray-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow',
+    list: 'bg-white border border-gray-200 rounded-lg shadow-sm p-4',
+    details: 'bg-white border border-gray-200 rounded-lg shadow-md p-6',
+    content: 'bg-white border border-gray-200 rounded-lg shadow-md p-6'
+  }[viewMode] || 'bg-white border border-gray-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow';
+
+  const renderSummary = () => {
+    if (viewMode === 'list') {
+      return (
+        <div className="grid gap-3 text-sm md:grid-cols-[1.4fr_1fr_1fr_1.1fr] md:items-center">
+          <div>
+            <p className="font-semibold text-gray-800">{booking.venue}</p>
+            <p className="text-gray-500">{booking.purpose}</p>
+          </div>
+          <div>
+            <p className="text-gray-600">Date</p>
+            <p className="font-medium">{formattedDate}</p>
+          </div>
+          <div>
+            <p className="text-gray-600">Time</p>
+            <p className="font-medium">{timeRange}</p>
+          </div>
+          <div>
+            <p className="text-gray-600">Attendees</p>
+            <p className="font-medium">{booking.expectedAttendees}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (viewMode === 'details') {
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+            <div>
+              <p className="text-gray-600">Date</p>
+              <p className="font-medium">{formattedDate}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Time</p>
+              <p className="font-medium">{timeRange}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Attendees</p>
+              <p className="font-medium">{booking.expectedAttendees}</p>
+            </div>
+            <div>
+              <p className="text-gray-600">Booking ID</p>
+              <p className="font-medium text-gray-700">{booking.id}</p>
+            </div>
+          </div>
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+            <p className="text-gray-600 text-sm mb-1">Purpose</p>
+            <p className="text-gray-800">{booking.purpose}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (viewMode === 'content') {
+      return (
+        <div className="space-y-3 text-sm">
+          <p className="text-gray-700 leading-6">
+            <span className="font-semibold text-gray-900">{booking.venue}</span> has been requested for{' '}
+            <span className="font-medium">{formattedDate}</span> from{' '}
+            <span className="font-medium">{timeRange}</span> for{' '}
+            <span className="font-medium">{booking.expectedAttendees}</span> attendee{booking.expectedAttendees === 1 ? '' : 's'}.
+          </p>
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+            <p className="text-gray-600 mb-1">Purpose</p>
+            <p className="text-gray-800 leading-6">{booking.purpose}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+        <div>
+          <p className="text-gray-600">Date</p>
+          <p className="font-medium">{formattedDate}</p>
+        </div>
+        <div>
+          <p className="text-gray-600">Time</p>
+          <p className="font-medium">{timeRange}</p>
+        </div>
+        <div>
+          <p className="text-gray-600">Purpose</p>
+          <p className="font-medium">{booking.purpose}</p>
+        </div>
+        <div>
+          <p className="text-gray-600">Attendees</p>
+          <p className="font-medium">{booking.expectedAttendees}</p>
+        </div>
+      </div>
+    );
+  };
 
   const handleApprove = async () => {
     setLoading(true);
@@ -82,32 +182,19 @@ export default function BookingCard({ booking, isAdmin = false, onBookingUpdate,
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-4">
+    <div className={cardClassName}>
+      <div className={`flex justify-between items-start ${viewMode === 'list' ? 'mb-3 gap-4' : 'mb-4'}`}>
         <div>
           <h3 className="text-xl font-semibold text-gray-800">{booking.venue}</h3>
-          <p className="text-sm text-gray-500">ID: {booking.id}</p>
+          {(viewMode === 'tiles' || viewMode === 'details') && (
+            <p className="text-sm text-gray-500">ID: {booking.id}</p>
+          )}
         </div>
         <BookingStatusBadge status={booking.status} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-        <div>
-          <p className="text-gray-600">Date</p>
-          <p className="font-medium">{new Date(booking.date).toLocaleDateString()}</p>
-        </div>
-        <div>
-          <p className="text-gray-600">Time</p>
-          <p className="font-medium">{booking.startTime} - {booking.endTime}</p>
-        </div>
-        <div>
-          <p className="text-gray-600">Purpose</p>
-          <p className="font-medium">{booking.purpose}</p>
-        </div>
-        <div>
-          <p className="text-gray-600">Attendees</p>
-          <p className="font-medium">{booking.expectedAttendees}</p>
-        </div>
+      <div className="mb-4">
+        {renderSummary()}
       </div>
 
       {isAdmin && (

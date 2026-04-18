@@ -5,11 +5,13 @@ import BookingForm from '../components/BookingForm';
 import * as bookingService from '../services/bookingService';
 
 export default function MyBookings() {
+  const viewModes = ['tiles', 'list', 'details', 'content'];
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [viewMode, setViewMode] = useState('tiles');
 
   useEffect(() => {
     loadBookings();
@@ -108,6 +110,28 @@ export default function MyBookings() {
             </button>
           </div>
 
+          <div className="mb-6 flex flex-col gap-3 rounded-lg bg-white border border-slate-200 p-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">View</p>
+              <p className="text-xs text-slate-500">Choose how bookings should be displayed.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {viewModes.map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-4 py-2 rounded text-sm font-medium capitalize transition ${
+                    viewMode === mode
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {(showForm || editingBooking) && (
             <div className="mb-8">
               <BookingForm
@@ -152,6 +176,7 @@ export default function MyBookings() {
                   isAdmin={false}
                   onBookingUpdate={handleBookingUpdated}
                   onEditBooking={setEditingBooking}
+                  viewMode={viewMode}
                 />
               ))}
             </div>
