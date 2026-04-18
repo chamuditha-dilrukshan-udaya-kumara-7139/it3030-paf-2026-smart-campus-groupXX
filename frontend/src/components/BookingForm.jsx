@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import * as bookingService from '../services/bookingService';
-import * as resourceService from '../services/ticketService'; // Reusing resource fetching
 
 export default function BookingForm({ onBookingCreated, resources = [] }) {
   const [formData, setFormData] = useState({
