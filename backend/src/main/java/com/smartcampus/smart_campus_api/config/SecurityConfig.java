@@ -38,6 +38,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/status").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -46,8 +47,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
-                // Booking endpoints: status updates are ADMIN/TECHNICIAN only, edit and delete are authenticated
-                .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/status").hasAnyRole("ADMIN", "TECHNICIAN")
+                // Booking endpoints: authenticated users reach the controller,
+                // then BookingService handles the business rules.
+                .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/status").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/*").authenticated()
                 // All other /api/** endpoints require authentication
@@ -82,8 +84,8 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

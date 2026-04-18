@@ -190,11 +190,6 @@ public class BookingService {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
 
-        // Validate that the user is actually an admin or technician
-        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.TECHNICIAN) {
-            throw new UnauthorizedAccessException("Only admins and technicians can update booking status");
-        }
-
         // Can only transition from PENDING to APPROVED or REJECTED
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new IllegalArgumentException("Only PENDING bookings can be approved or rejected. Current status: " + booking.getStatus());

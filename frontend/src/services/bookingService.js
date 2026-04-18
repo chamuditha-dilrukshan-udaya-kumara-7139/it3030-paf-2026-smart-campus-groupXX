@@ -2,13 +2,27 @@ import http from './http';
 
 const API_BASE_URL = '/api/bookings';
 
+const getErrorMessage = (error, fallbackMessage) => {
+  const responseData = error.response?.data;
+
+  if (typeof responseData === 'string' && responseData.trim()) {
+    return responseData;
+  }
+
+  if (responseData?.message) {
+    return responseData.message;
+  }
+
+  return error.message || fallbackMessage;
+};
+
 // Create a new booking
 export const createBooking = async (bookingData) => {
   try {
     const response = await http.post(API_BASE_URL, bookingData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to create booking'));
   }
 };
 
@@ -26,7 +40,7 @@ export const getAllBookings = async (status = null, resourceId = null, date = nu
     const response = await http.get(url);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to load bookings'));
   }
 };
 
@@ -36,7 +50,7 @@ export const getBookingById = async (bookingId) => {
     const response = await http.get(`${API_BASE_URL}/${bookingId}`);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to load booking'));
   }
 };
 
@@ -46,7 +60,7 @@ export const updateBookingStatus = async (bookingId, statusData) => {
     const response = await http.patch(`${API_BASE_URL}/${bookingId}/status`, statusData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to update booking status'));
   }
 };
 
@@ -56,7 +70,7 @@ export const cancelBooking = async (bookingId) => {
     const response = await http.patch(`${API_BASE_URL}/${bookingId}/cancel`);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to cancel booking'));
   }
 };
 
@@ -66,7 +80,7 @@ export const updateBooking = async (bookingId, bookingData) => {
     const response = await http.put(`${API_BASE_URL}/${bookingId}`, bookingData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to update booking'));
   }
 };
 
@@ -76,7 +90,7 @@ export const deleteBooking = async (bookingId) => {
     const response = await http.delete(`${API_BASE_URL}/${bookingId}`);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw new Error(getErrorMessage(error, 'Failed to delete booking'));
   }
 };
 
