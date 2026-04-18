@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as bookingService from '../services/bookingService';
 
-export default function BookingForm({ onBookingCreated }) {
+export default function BookingForm({ booking, onBookingCreated, onBookingUpdated }) {
   const [formData, setFormData] = useState({
     venue: '',
     date: '',
@@ -14,6 +14,30 @@ export default function BookingForm({ onBookingCreated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const isEditing = !!booking;
+
+  useEffect(() => {
+    if (booking) {
+      setFormData({
+        venue: booking.venue || '',
+        date: booking.date ? new Date(booking.date).toISOString().split('T')[0] : '',
+        startTime: booking.startTime || '',
+        endTime: booking.endTime || '',
+        purpose: booking.purpose || '',
+        expectedAttendees: booking.expectedAttendees || 1
+      });
+    } else {
+      setFormData({
+        venue: '',
+        date: '',
+        startTime: '',
+        endTime: '',
+        purpose: '',
+        expectedAttendees: 1
+      });
+    }
+  }, [booking]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -96,17 +120,29 @@ export default function BookingForm({ onBookingCreated }) {
 
     setLoading(true);
     try {
-      await bookingService.createBooking(formData);
-      setSuccess('Booking request submitted successfully! Waiting for admin approval.');
-      setFormData({
-        venue: '',
-        date: '',
-        startTime: '',
-        endTime: '',
-        purpose: '',
-        expectedAttendees: 1
-      });
-      onBookingCreated?.();
+      if (isEditing) {
+        await bookingService.updateBooking(booking.id, formData);
+        setSuccess('Booking updated successfully!');
+      } else {
+        await bookingService.createBooking(formData);
+        setSuccess('Booking request submitted successfully! Waiting for admin approval.');
+      }
+
+      if (!isEditing) {
+        setFormData({
+          venue: '',
+          date: '',
+          startTime: '',
+          endTime: '',
+          purpose: '',
+          expectedAttendees: 1
+        });
+      }
+      if (isEditing) {
+        onBookingUpdated?.();
+      } else {
+        onBookingCreated?.();
+      }
     } catch (err) {
       // Check if the error is a conflict
       if (err.message && err.message.includes('conflict') || err.message.includes('Conflict')) {
@@ -114,7 +150,7 @@ export default function BookingForm({ onBookingCreated }) {
       } else if (typeof err === 'object' && err.message) {
         setError('Error: ' + err.message);
       } else {
-        setError('Failed to create booking: ' + (err || 'Unknown error'));
+        setError(`Failed to ${isEditing ? 'update' : 'create'} booking: ` + (err || 'Unknown error'));
       }
     } finally {
       setLoading(false);
@@ -123,7 +159,7 @@ export default function BookingForm({ onBookingCreated }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Booking Request</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">{isEditing ? 'Edit Booking' : 'Create Booking Request'}</h2>
 
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -242,7 +278,7 @@ export default function BookingForm({ onBookingCreated }) {
           disabled={loading}
           className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition disabled:opacity-50"
         >
-          {loading ? 'Submitting...' : 'Submit Booking Request'}
+          {loading ? 'Processing...' : (isEditing ? 'Update Booking' : 'Submit Booking Request')}
         </button>
       </form>
     </div>

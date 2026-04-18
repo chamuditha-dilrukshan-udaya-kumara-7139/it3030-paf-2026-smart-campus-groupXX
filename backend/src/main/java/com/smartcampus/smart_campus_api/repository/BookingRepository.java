@@ -38,4 +38,8 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     // Find conflicting bookings - same venue, same date, APPROVED status, overlapping time
     @Query("{ 'venue': ?0, 'date': ?1, 'status': 'APPROVED', 'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
     List<Booking> findConflictingBookings(String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
+
+    // Find conflicting bookings excluding a specific booking ID
+    @Query("{ '_id': { $ne: ?0 }, 'venue': ?1, 'date': ?2, 'status': 'APPROVED', 'startTime': { $lt: ?4 }, 'endTime': { $gt: ?3 } }")
+    List<Booking> findConflictingBookingsExcludingId(String excludeId, String venue, LocalDate date, LocalTime startTime, LocalTime endTime);
 }

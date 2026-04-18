@@ -46,9 +46,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,   "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
-                // Booking endpoints: status updates and deletes are ADMIN/TECHNICIAN only
+                // Booking endpoints: status updates are ADMIN/TECHNICIAN only, edit and delete are authenticated
                 .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/status").hasAnyRole("ADMIN", "TECHNICIAN")
-                .requestMatchers(HttpMethod.DELETE, "/api/bookings/*").hasAnyRole("ADMIN", "TECHNICIAN")
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/*").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/bookings/*").authenticated()
                 // All other /api/** endpoints require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
@@ -81,7 +82,7 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BookingCard from '../components/BookingCard';
 import BookingForm from '../components/BookingForm';
 import * as bookingService from '../services/bookingService';
 
 export default function MyBookings() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null);
 
   useEffect(() => {
     loadBookings();
@@ -32,7 +35,8 @@ export default function MyBookings() {
     loadBookings();
   };
 
-  const handleBookingUpdate = () => {
+  const handleBookingUpdated = () => {
+    setEditingBooking(null);
     loadBookings();
   };
 
@@ -64,7 +68,15 @@ export default function MyBookings() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">My Bookings</h1>
+        <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl font-bold text-gray-800">My Bookings</h1>
+          <button
+            onClick={() => navigate('/hub')}
+            className="bg-gray-100 text-gray-700 py-2 px-5 rounded border border-gray-300 hover:bg-gray-200 transition self-start"
+          >
+            Back to Home
+          </button>
+        </div>
         
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-6">
@@ -96,9 +108,22 @@ export default function MyBookings() {
       </div>
 
       {/* Booking Form */}
-      {showForm && (
+      {(showForm || editingBooking) && (
         <div className="mb-8">
-          <BookingForm onBookingCreated={handleBookingCreated} />
+          <BookingForm
+            booking={editingBooking}
+            onBookingCreated={handleBookingCreated}
+            onBookingUpdated={handleBookingUpdated}
+          />
+          <button
+            onClick={() => {
+              setShowForm(false);
+              setEditingBooking(null);
+            }}
+            className="mt-4 bg-gray-500 text-white py-2 px-6 rounded hover:bg-gray-600 transition"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
@@ -127,7 +152,8 @@ export default function MyBookings() {
               key={booking.id}
               booking={booking}
               isAdmin={false}
-              onBookingUpdate={handleBookingUpdate}
+              onBookingUpdate={handleBookingUpdated}
+              onEditBooking={setEditingBooking}
             />
           ))}
         </div>

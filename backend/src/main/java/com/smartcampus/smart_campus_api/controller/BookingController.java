@@ -102,6 +102,26 @@ public class BookingController {
     }
 
     /**
+     * PUT /api/bookings/{id}
+     * Update a booking (edit details)
+     * Only the user who created the booking can update it, and only if PENDING
+     * Status: 200 OK on success
+     * Status: 400 Bad Request on validation error or conflict
+     * Status: 401 Unauthorized if not authenticated
+     * Status: 403 Forbidden if user tries to update another user's booking
+     * Status: 404 Not Found if booking doesn't exist
+     * Status: 409 Conflict if scheduling conflict detected
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponseDTO> updateBooking(@PathVariable String id, @Valid @RequestBody BookingRequestDTO requestDTO) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userId = userService.getUserByEmail(email).getId();
+
+        BookingResponseDTO response = bookingService.updateBooking(id, userId, requestDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * PATCH /api/bookings/{id}/status
      * Update booking status (approve or reject)
      * Only ADMIN can do this
@@ -146,18 +166,20 @@ public class BookingController {
     /**
      * DELETE /api/bookings/{id}
      * Delete a booking record
-     * Only ADMIN can do this
+     * ADMIN/TECHNICIAN can delete any booking, USER can delete their own PENDING bookings
      * Status: 204 No Content on success
      * Status: 401 Unauthorized if not authenticated
-     * Status: 403 Forbidden if not ADMIN
+     * Status: 403 Forbidden if not authorized
      * Status: 404 Not Found if booking doesn't exist
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable String id) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String adminId = userService.getUserByEmail(email).getId();
+        var user = userService.getUserByEmail(email);
+        String userId = user.getId();
+        Role role = user.getRole();
 
-        bookingService.deleteBooking(id, adminId);
+        bookingService.deleteBooking(id, userId, role);
         return ResponseEntity.noContent().build();
     }
 }

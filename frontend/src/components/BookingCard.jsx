@@ -2,7 +2,7 @@ import { useState } from 'react';
 import BookingStatusBadge from './BookingStatusBadge';
 import * as bookingService from '../services/bookingService';
 
-export default function BookingCard({ booking, isAdmin = false, onBookingUpdate }) {
+export default function BookingCard({ booking, isAdmin = false, onBookingUpdate, onEditBooking }) {
   const [showApprovalPanel, setShowApprovalPanel] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,6 +56,25 @@ export default function BookingCard({ booking, isAdmin = false, onBookingUpdate 
         onBookingUpdate?.();
       } catch (err) {
         setError(err.message || 'Failed to cancel booking');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleEdit = () => {
+    onEditBooking?.(booking);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+      setLoading(true);
+      setError('');
+      try {
+        await bookingService.deleteBooking(booking.id);
+        onBookingUpdate?.();
+      } catch (err) {
+        setError(err.message || 'Failed to delete booking');
       } finally {
         setLoading(false);
       }
@@ -164,6 +183,26 @@ export default function BookingCard({ booking, isAdmin = false, onBookingUpdate 
             </div>
           )}
         </>
+      )}
+
+      {/* User Actions for PENDING bookings */}
+      {!isAdmin && booking.status === 'PENDING' && (
+        <div className="flex gap-2">
+          <button
+            onClick={handleEdit}
+            disabled={loading}
+            className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition disabled:opacity-50"
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="flex-1 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition disabled:opacity-50"
+          >
+            Delete
+          </button>
+        </div>
       )}
 
       {/* User Cancel Button */}

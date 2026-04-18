@@ -60,6 +60,16 @@ export const cancelBooking = async (bookingId) => {
   }
 };
 
+// Update a booking (edit details)
+export const updateBooking = async (bookingId, bookingData) => {
+  try {
+    const response = await http.put(`${API_BASE_URL}/${bookingId}`, bookingData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
 // Delete a booking (admin only)
 export const deleteBooking = async (bookingId) => {
   try {
@@ -75,6 +85,7 @@ export default {
   getAllBookings,
   getBookingById,
   updateBookingStatus,
+  updateBooking,
   cancelBooking,
   deleteBooking,
 };

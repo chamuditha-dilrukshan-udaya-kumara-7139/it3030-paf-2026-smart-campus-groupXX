@@ -280,17 +280,88 @@ public class BookingService {
     }
 
     /**
-     * Delete a booking (admin only)
+     * Update a booking (edit details)
+     * Only the user who created the booking can update it, and only if it's PENDING
      */
-    public void deleteBooking(String bookingId, String adminId) {
+    public BookingResponseDTO updateBooking(String bookingId, String userId, BookingRequestDTO requestDTO) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
+        // Check authorization - only the user who created it can update
+        if (!booking.getRequestedBy().getId().equals(userId)) {
+            throw new UnauthorizedAccessException("You are not authorized to update this booking");
+        }
 
-        if (admin.getRole() != Role.ADMIN && admin.getRole() != Role.TECHNICIAN) {
-            throw new UnauthorizedAccessException("Only admins and technicians can delete bookings");
+        // Can only update PENDING bookings
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalArgumentException("Only PENDING bookings can be updated. Current status: " + booking.getStatus());
+        }
+
+        // Validate time range
+        if (requestDTO.getStartTime().isAfter(requestDTO.getEndTime())) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        // Validate date is not in the past
+        LocalDate today = LocalDate.now();
+        if (requestDTO.getDate().isBefore(today)) {
+            throw new IllegalArgumentException("Cannot book for past dates");
+        }
+
+        // Validate time is between 8am and 8pm
+        LocalTime businessStart = LocalTime.of(8, 0);
+        LocalTime businessEnd = LocalTime.of(20, 0);
+        if (requestDTO.getStartTime().isBefore(businessStart) || requestDTO.getStartTime().isAfter(businessEnd) ||
+            requestDTO.getEndTime().isBefore(businessStart) || requestDTO.getEndTime().isAfter(businessEnd)) {
+            throw new IllegalArgumentException("Booking time must be between 8:00 AM and 8:00 PM");
+        }
+
+        // Check for scheduling conflicts with APPROVED bookings (excluding this booking)
+        List<Booking> conflicts = bookingRepository.findConflictingBookingsExcludingId(
+                bookingId,
+                requestDTO.getVenue(),
+                requestDTO.getDate(),
+                requestDTO.getStartTime(),
+                requestDTO.getEndTime()
+        );
+
+        if (!conflicts.isEmpty()) {
+            throw new BookingConflictException(
+                    "Scheduling conflict detected. This venue is already booked during the requested time on " + requestDTO.getDate()
+            );
+        }
+
+        // Update booking
+        booking.setVenue(requestDTO.getVenue());
+        booking.setDate(requestDTO.getDate());
+        booking.setStartTime(requestDTO.getStartTime());
+        booking.setEndTime(requestDTO.getEndTime());
+        booking.setPurpose(requestDTO.getPurpose());
+        booking.setExpectedAttendees(requestDTO.getExpectedAttendees());
+        booking.setUpdatedAt(LocalDateTime.now());
+
+        Booking savedBooking = bookingRepository.save(booking);
+        return convertToResponseDTO(savedBooking);
+    }
+
+    /**
+     * Delete a booking
+     * ADMIN/TECHNICIAN can delete any booking, USER can delete their own PENDING bookings
+     */
+    public void deleteBooking(String bookingId, String userId, Role userRole) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+
+        // Check authorization
+        if (userRole == Role.USER) {
+            if (!booking.getRequestedBy().getId().equals(userId)) {
+                throw new UnauthorizedAccessException("You are not authorized to delete this booking");
+            }
+            if (booking.getStatus() != BookingStatus.PENDING) {
+                throw new IllegalArgumentException("Only PENDING bookings can be deleted by users. Current status: " + booking.getStatus());
+            }
+        } else if (userRole != Role.ADMIN && userRole != Role.TECHNICIAN) {
+            throw new UnauthorizedAccessException("Only admins, technicians, or the booking owner can delete bookings");
         }
 
         bookingRepository.deleteById(bookingId);
