@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout as logoutRequest } from '../services/api';
+import NotificationDropdown from './NotificationDropdown';
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -21,13 +22,14 @@ function Sidebar() {
 
   return (
     <div className="w-64 bg-slate-900 text-white flex flex-col h-screen">
-      <div className="p-6">
+      <div className="p-6 flex items-center justify-between">
         <button
           onClick={() => navigate('/hub')}
           className="text-xl font-bold text-blue-500 hover:text-blue-400 transition-colors text-left"
         >
           Smart Campus
         </button>
+        <NotificationDropdown />
       </div>
 
       <nav className="flex-1 px-4">

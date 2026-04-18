@@ -15,15 +15,24 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public Notification createNotification(String userId, String message) {
+    public Notification createNotification(String userId, String message, String type) {
         Notification notification = Notification.builder()
             .userId(userId)
             .message(message)
+            .type(type)
             .isRead(false)
             .build();
         notification.onCreate();
 
         return notificationRepository.save(notification);
+    }
+
+    public void deleteNotification(String userId, String notificationId) {
+        Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+            .orElseThrow(() -> new NoSuchElementException(
+                "Notification not found for id: " + notificationId + " and userId: " + userId
+            ));
+        notificationRepository.delete(notification);
     }
 
     public List<Notification> getUserNotifications(String userId) {

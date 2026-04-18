@@ -31,6 +31,9 @@ public class TicketService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private NotificationService notificationService;
+
 
 
     public Ticket createTicket(TicketRequestDto dto, String authorEmail) {
@@ -49,7 +52,26 @@ public class TicketService {
         ticket.setAuthorId(author.getId());
         ticket.setStatus("OPEN");
 
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        // Notify admins and technicians about the new ticket
+        java.util.List<User> staff = userService.getAllUsers().stream()
+                .filter(u -> u.getRole() == Role.ADMIN || u.getRole() == Role.TECHNICIAN)
+                .toList();
+
+        for (User u : staff) {
+            try {
+                notificationService.createNotification(
+                        u.getId(),
+                        "A new ticket was submitted: " + ticket.getTitle(),
+                        "TICKET"
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send notification: " + e.getMessage());
+            }
+        }
+
+        return savedTicket;
     }
 
     public List<Ticket> getAllTickets(String userEmail) {
@@ -85,7 +107,19 @@ public class TicketService {
             ticket.setAssigneeId(updater.getId());
         }
 
-        return ticketRepository.save(ticket);
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        try {
+            notificationService.createNotification(
+                    ticket.getAuthorId(),
+                    "Your ticket '" + ticket.getTitle() + "' status has been updated to " + dto.getStatus(),
+                    "TICKET"
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send notification: " + e.getMessage());
+        }
+
+        return savedTicket;
     }
 
     public Comment addComment(String ticketId, CommentRequestDto dto, String authorEmail) {
@@ -97,7 +131,21 @@ public class TicketService {
         comment.setAuthorId(author.getId());
         comment.setContent(dto.getContent());
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        if (!author.getId().equals(ticket.getAuthorId())) {
+            try {
+                notificationService.createNotification(
+                        ticket.getAuthorId(),
+                        "A new comment was added to your ticket '" + ticket.getTitle() + "'",
+                        "TICKET"
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send notification: " + e.getMessage());
+            }
+        }
+
+        return savedComment;
     }
 
     public List<Comment> getCommentsForTicket(String ticketId) {

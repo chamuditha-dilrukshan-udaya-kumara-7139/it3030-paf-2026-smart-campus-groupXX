@@ -99,6 +99,24 @@ public class BookingService {
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
+
+        // Notify admins and technicians about the new booking request
+        List<User> staff = userRepository.findAll().stream()
+                .filter(u -> u.getRole() == Role.ADMIN || u.getRole() == Role.TECHNICIAN)
+                .collect(Collectors.toList());
+
+        for (User u : staff) {
+            try {
+                notificationService.createNotification(
+                        u.getId(),
+                        user.getName() + " requested a new booking for " + requestDTO.getVenue(),
+                        "BOOKING"
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to send notification: " + e.getMessage());
+            }
+        }
+
         return convertToResponseDTO(savedBooking);
     }
 
@@ -231,7 +249,8 @@ public class BookingService {
                     updatedBooking.getRequestedBy().getId(),
                     "Your booking for " + updatedBooking.getVenue() +
                     " has been " + updatedBooking.getStatus().toString().toLowerCase() +
-                    (updateDTO.getReason() != null ? ". Reason: " + updateDTO.getReason() : "")
+                    (updateDTO.getReason() != null ? ". Reason: " + updateDTO.getReason() : ""),
+                    "BOOKING"
             );
         } catch (Exception e) {
             // Log but don't fail the request if notification fails
@@ -268,7 +287,8 @@ public class BookingService {
         try {
             notificationService.createNotification(
                     userId,
-                    "Your booking for " + booking.getVenue() + " has been cancelled"
+                    "Your booking for " + booking.getVenue() + " has been cancelled",
+                    "BOOKING"
             );
         } catch (Exception e) {
             System.err.println("Failed to send notification: " + e.getMessage());
