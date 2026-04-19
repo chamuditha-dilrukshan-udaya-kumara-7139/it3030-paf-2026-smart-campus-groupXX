@@ -78,4 +78,15 @@ public class UserService {
         user.setRole(role);
         return userRepository.save(user);
     }
+
+    public void deleteUser(String userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new java.util.NoSuchElementException("User not found for id: " + userId));
+            
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Admin accounts cannot be deleted.");
+        }
+        
+        userRepository.delete(user);
+    }
 }

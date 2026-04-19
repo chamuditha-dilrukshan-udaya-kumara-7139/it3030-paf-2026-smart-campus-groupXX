@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getAllUsers, updateUserRole } from '../services/api';
+import { getAllUsers, updateUserRole, deleteUser } from '../services/api';
 
 const MANAGEABLE_ROLES = ['USER', 'TECHNICIAN'];
 
@@ -41,6 +41,24 @@ function UserManagementPage() {
     } catch (err) {
       console.error('Failed to update role', err);
       setError(err.response?.data?.message || 'Failed to update user role.');
+    } finally {
+      setSavingUserId(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to permanently delete this user account?')) {
+      return;
+    }
+    
+    try {
+      setSavingUserId(userId);
+      setError('');
+      await deleteUser(userId);
+      setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId));
+    } catch (err) {
+      console.error('Failed to delete user', err);
+      setError(err.response?.data?.message || 'Failed to delete user.');
     } finally {
       setSavingUserId(null);
     }
@@ -110,18 +128,27 @@ function UserManagementPage() {
                           {isAdmin ? (
                             <span className="text-sm text-slate-500">Admin role is locked</span>
                           ) : (
-                            <select
-                              value={user.role}
-                              disabled={isSaving}
-                              onChange={(event) => handleRoleChange(user.id, event.target.value)}
-                              className="block min-w-[160px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
-                            >
-                              {MANAGEABLE_ROLES.map((role) => (
-                                <option key={role} value={role}>
-                                  {role}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="flex gap-4 items-center">
+                              <select
+                                value={user.role}
+                                disabled={isSaving}
+                                onChange={(event) => handleRoleChange(user.id, event.target.value)}
+                                className="block min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                              >
+                                {MANAGEABLE_ROLES.map((role) => (
+                                  <option key={role} value={role}>
+                                    {role}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={isSaving}
+                                className="text-red-500 hover:text-red-700 text-sm font-semibold transition-colors disabled:opacity-50"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>

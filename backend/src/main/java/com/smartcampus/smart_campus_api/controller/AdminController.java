@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Comparator;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -43,5 +44,11 @@ public class AdminController {
     @PutMapping("/users/{userId}/role")
     public ResponseEntity<AdminUserDto> updateUserRole(@PathVariable String userId, @RequestBody Role role) {
         return ResponseEntity.ok(AdminUserDto.from(userService.updateUserRole(userId, role)));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 }

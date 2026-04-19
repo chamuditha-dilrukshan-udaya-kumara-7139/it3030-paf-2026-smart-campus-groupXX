@@ -15,3 +15,4 @@ export const logout = () => http.post('/logout');
 export const getAllUsers = () => http.get('/api/admin/users');
 export const updateUserRole = (userId, role) =>
   http.put(`/api/admin/users/${userId}/role`, `"${role}"`);
+export const deleteUser = (userId) => http.delete(`/api/admin/users/${userId}`);
