@@ -52,7 +52,7 @@ function Sidebar() {
           {user?.role === 'ADMIN' && (
             <li>
               <Link to="/hub/users" className={`block px-4 py-2 rounded ${location.pathname.startsWith('/hub/users') ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                ⬡ User Management
+              User Management
               </Link>
             </li>
           )}
