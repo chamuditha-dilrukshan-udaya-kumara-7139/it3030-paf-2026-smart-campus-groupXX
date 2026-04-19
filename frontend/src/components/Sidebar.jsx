@@ -67,13 +67,13 @@ function Sidebar() {
       </nav>
 
       <div className="p-6 border-t border-slate-800">
-        <div className="mb-2">
-          <p className="text-sm font-medium">{user?.name}</p>
-          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase">
+        <Link to="/hub/profile" className="block mb-2 hover:bg-slate-800 -mx-4 px-4 py-2 rounded transition-colors group">
+          <p className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors">{user?.name}</p>
+          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded uppercase inline-block mt-1">
             {user?.role}
           </span>
-        </div>
-        <button onClick={handleLogout} className="mt-2 w-full text-left text-xs text-slate-400 hover:text-white">
+        </Link>
+        <button onClick={handleLogout} className="mt-2 text-left w-full text-xs text-slate-400 hover:text-white">
           Sign out
         </button>
       </div>

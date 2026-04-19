@@ -78,26 +78,58 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-public ResponseEntity<?> me(Authentication authentication) {
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() 
+            || authentication.getName().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not logged in"));
+        }
 
-    if (authentication == null || !authentication.isAuthenticated() 
-        || authentication.getName().equals("anonymousUser")) {
+        String email = resolveEmail(authentication);
+        User user = userService.getByEmail(email);
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "User not logged in"));
+        return ResponseEntity.ok(new UserProfileResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getRole().name(),
+            null // Token not needed for /me as it's already provided in header
+        ));
     }
 
-    String email = resolveEmail(authentication);
-    User user = userService.getByEmail(email);
+    @org.springframework.web.bind.annotation.PutMapping("/me")
+    public ResponseEntity<?> updateProfile(Authentication authentication, @Valid @RequestBody UpdateProfileRequest request) {
+        if (authentication == null || !authentication.isAuthenticated() 
+            || authentication.getName().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not logged in"));
+        }
+        String email = resolveEmail(authentication);
+        try {
+            User user = userService.updateUserName(email, request.name());
+            return ResponseEntity.ok(new UserProfileResponse(
+                user.getId(), user.getName(), user.getEmail(), user.getRole().name(), null
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 
-    return ResponseEntity.ok(new UserProfileResponse(
-        user.getId(),
-        user.getName(),
-        user.getEmail(),
-        user.getRole().name(),
-        null // Token not needed for /me as it's already provided in header
-    ));
-}
+    @org.springframework.web.bind.annotation.DeleteMapping("/me")
+    public ResponseEntity<?> deleteAccount(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() 
+            || authentication.getName().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not logged in"));
+        }
+        String email = resolveEmail(authentication);
+        try {
+            userService.deleteUserAccount(email);
+            return ResponseEntity.ok(Map.of("message", "Account deleted successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 
     private String resolveEmail(Authentication authentication) {
         Object principal = authentication.getPrincipal();
@@ -145,6 +177,12 @@ public ResponseEntity<?> me(Authentication authentication) {
         String email,
         @NotBlank(message = "Password is required.")
         String password
+    ) {
+    }
+
+    public record UpdateProfileRequest(
+        @NotBlank(message = "Name is required.")
+        String name
     ) {
     }
 }

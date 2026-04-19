@@ -11,6 +11,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import MyBookings from './pages/MyBookings';
 import AdminBookings from './pages/AdminBookings';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -92,6 +93,15 @@ function App() {
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <UserManagementPage />
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/hub/profile"
+        element={
+          <AuthenticatedRoute>
+            <ProfilePage />
+          </AuthenticatedRoute>
         }
       />
       

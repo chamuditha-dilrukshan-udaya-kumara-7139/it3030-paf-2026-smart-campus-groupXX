@@ -63,6 +63,23 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public User updateUserName(String email, String newName) {
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty.");
+        }
+        User user = getByEmail(email);
+        user.setName(newName.trim());
+        return userRepository.save(user);
+    }
+
+    public void deleteUserAccount(String email) {
+        User user = getByEmail(email);
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Admin accounts cannot be deleted directly via profile.");
+        }
+        userRepository.delete(user);
+    }
+
     public User updateUserRole(String userId, Role role) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new java.util.NoSuchElementException("User not found for id: " + userId));

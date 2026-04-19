@@ -12,6 +12,9 @@ export const loginWithEmail = (credentials) => http.post(`${AUTH_PATH}/login`, c
 export const signupWithEmail = (payload) => http.post(`${AUTH_PATH}/register`, payload);
 export const logout = () => http.post('/logout');
 
+export const updateProfile = (payload) => http.put(`${AUTH_PATH}/me`, payload);
+export const deleteAccount = () => http.delete(`${AUTH_PATH}/me`);
+
 export const getAllUsers = () => http.get('/api/admin/users');
 export const updateUserRole = (userId, role) =>
   http.put(`/api/admin/users/${userId}/role`, `"${role}"`);
