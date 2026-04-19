@@ -118,8 +118,6 @@ function ProfilePage() {
               <hr className="border-slate-100" />
               
               <div className="pt-2">
-                 <h3 className="text-sm font-bold text-red-600 mb-2">Danger Zone</h3>
-                 <p className="text-xs text-slate-500 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
                  <button
                     onClick={handleDelete}
                     disabled={user?.role === 'ADMIN' || saving}
