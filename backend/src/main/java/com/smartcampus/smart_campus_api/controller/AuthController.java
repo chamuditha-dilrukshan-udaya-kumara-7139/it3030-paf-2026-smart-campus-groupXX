@@ -67,14 +67,6 @@ public class AuthController {
                 )
             );
 
-            // SecurityContext context = SecurityContextHolder.createEmptyContext();
-            // context.setAuthentication(authentication);
-            // SecurityContextHolder.setContext(context);
-            // httpServletRequest.getSession(true).setAttribute(
-            //     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            //     context
-            // );
-
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtService.generateToken(userDetails);
 
